@@ -1,0 +1,50 @@
+query invoices(
+  $where: InvoiceWhereInput!
+  $first: Int
+  $after: Cursor
+  $before: Cursor
+  $last: Int
+) {
+  invoices(
+    where: $where
+    first: $first
+    after: $after
+    before: $before
+    last: $last
+  ) {
+    totalCount
+    edges {
+      cursor
+
+      node {
+        id
+        enrollment {
+          discount
+          student {
+            id
+            lastName
+            firstName
+          }
+          group {
+            name
+            billingUnit
+          }
+        }
+
+        transactions {
+          amount
+          createdAt
+          note
+          cashier {
+            firstName
+            lastName
+          }
+        }
+        amountDue
+        amountPaid
+        paidDate
+        createdAt
+      }
+    }
+  }
+}

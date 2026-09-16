@@ -1,0 +1,75 @@
+query attendences($where: AttendanceWhereInput!, $first: Int!, $after: Cursor) {
+  attendances(where: $where, first: $first, after: $after) {
+    edges {
+      node {
+        id
+
+        student {
+          lastName
+          firstName
+        }
+        isPresent
+        reason
+        session {
+          startAt
+          endAt
+          schedule {
+            group {
+              name
+            }
+            subject {
+              name
+            }
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+mutation updateattendaces($inputs: [AttendanceUpdateItemInput!]!) {
+  updateAttendances(inputs: $inputs) {
+    isPresent
+    date
+    reason
+    student {
+      id
+      lastName
+      firstName
+    }
+    session {
+      startAt
+      endAt
+      durationMin
+    }
+  }
+}
+
+subscription attendancesUpdated {
+  attendancesUpdated {
+    id
+    reason
+    student {
+      lastName
+      firstName
+    }
+    isPresent
+    reason
+    session {
+      startAt
+      endAt
+      schedule {
+        group {
+          name
+        }
+        subject {
+          name
+        }
+      }
+    }
+  }
+}

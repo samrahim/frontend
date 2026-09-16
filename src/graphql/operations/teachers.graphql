@@ -1,0 +1,120 @@
+query TeachersTable(
+  $offset: Int!
+  $limit: Int!
+  $orderBy: TeacherOrder
+  $where: TeacherWhereInput
+  $withTotalCount: Boolean!
+) {
+  teachersTable(
+    offset: $offset
+    limit: $limit
+    where: $where
+    orderBy: $orderBy
+    withTotalCount: $withTotalCount
+  ) {
+    totalCount @include(if: $withTotalCount)
+    edges {
+      node {
+        ...TeacherFields
+      }
+    }
+  }
+}
+
+query GetTeachers {
+  teachers {
+    edges {
+      node {
+        ...TeacherFields
+      }
+    }
+  }
+}
+
+mutation createTeacher($input: CreateTeacherInput!) {
+  createTeacher(input: $input) {
+    ...TeacherFields
+  }
+}
+mutation UpdateTeacher($id: ID!, $input: UpdateTeacherInput!) {
+  updateTeacher(id: $id, input: $input) {
+    ...TeacherFields
+  }
+}
+
+mutation DeleteTeacher($id: ID!) {
+  deleteTeacher(id: $id)
+}
+
+query GetTeacherDetails($id: ID!) {
+  node(id: $id) {
+    ... on Teacher {
+      id
+      firstName
+      lastName
+      createdAt
+      address
+      email
+      phone
+      dateOfBirth
+      description
+      paymentType
+      paymentAmount
+      picture
+      gender
+      active
+      banned
+      creator {
+        ...Creator
+      }
+      prefSubject {
+        id
+        name
+      }
+      assignments {
+        id
+        assignedAt
+        stoppedAt
+        subject {
+          id
+          name
+        }
+        group {
+          id
+          name
+        }
+        assignedBy {
+          ...Creator
+        }
+      }
+    }
+  }
+}
+
+subscription OnTeacherCreated {
+  teacherCreated {
+    id
+    lastName
+    firstName
+    phone
+    gender
+    paymentAmount
+  }
+}
+
+subscription OnTeacherUpdated {
+  teacherUpdated {
+    id
+    lastName
+    firstName
+    phone
+    gender
+    paymentAmount
+  }
+}
+
+mutation StopTeacher($id: ID!) {
+  stopTeacher(id: $id) {
+    id
+  }
+}

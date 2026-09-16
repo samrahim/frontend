@@ -1,0 +1,124 @@
+query Withdraws(
+  $first: Int
+  $after: Cursor
+  $where: WithdrawWhereInput
+  $orderBy: WithdrawOrder
+) {
+  withdraws(first: $first, after: $after, where: $where, orderBy: $orderBy) {
+    edges {
+      __typename
+      cursor
+      node {
+        id
+        amount
+        note
+        createdAt
+        type {
+          name
+          id
+        }
+        creator {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+
+    totalCount
+  }
+}
+
+query withDrawsTypes($after: Cursor, $first: Int, $before: Cursor, $last: Int) {
+  withdrawTypes(after: $after, first: $first, before: $before, last: $last) {
+    edges {
+      node {
+        id
+        name
+      }
+      cursor
+    }
+  }
+}
+
+subscription withdrawTypeCreated {
+  withdrawTypeCreated {
+    id
+    name
+  }
+}
+
+subscription withdrawTypeUpdated {
+  withdrawTypeUpdated {
+    id
+    name
+  }
+}
+
+mutation createWithDrawType($input: CreateWithdrawTypeInput!) {
+  createWithdrawType(input: $input) {
+    id
+    name
+  }
+}
+
+mutation createWithDraw($input: CreateWithdrawInput!) {
+  createWithdraw(input: $input) {
+    id
+    amount
+    note
+    createdAt
+    type {
+      name
+      id
+    }
+    creator {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onWithDrawCreated {
+  withdrawCreated {
+    id
+    amount
+    note
+    createdAt
+    type {
+      name
+      id
+    }
+    creator {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onWithDrawUpdated {
+  withdrawUpdated {
+    id
+    amount
+    note
+    createdAt
+    type {
+      name
+      id
+    }
+    creator {
+      id
+      firstName
+      lastName
+    }
+  }
+}

@@ -1,0 +1,36 @@
+query school {
+  infos {
+    edges {
+      node {
+        id
+        logo
+        name
+        address
+        email
+        holidays {
+          name
+          date
+          isWorkingDay
+        }
+      }
+    }
+  }
+}
+
+mutation updateinfo($id: ID!, $input: UpdateInfoInput!, $file: Upload) {
+  updateInfo(id: $id, input: $input, file: $file) {
+    id
+    name
+    logo
+    address
+  }
+}
+
+subscription onInfoUpdated {
+  infoUpdated {
+    id
+    name
+    logo
+    address
+  }
+}

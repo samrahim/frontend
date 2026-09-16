@@ -1,0 +1,222 @@
+fragment SessionDetailsFragment on Session {
+  id
+  startAt
+  endAt
+  durationMin
+  free
+  canceled
+  meetURL
+  schedule {
+    room {
+      id
+      name
+    }
+    id
+    rrule
+    subject {
+      id
+      name
+    }
+    group {
+      id
+      name
+      color
+    }
+    assignment {
+      id
+      teacher {
+        id
+        firstName
+        lastName
+        email
+      }
+    }
+  }
+  class {
+    id
+    name
+  }
+  enrollments {
+    id
+    student {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+query GetSessions($where: SessionWhereInput!) {
+  sessions(where: $where) {
+    edges {
+      node {
+        ...SessionDetailsFragment
+      }
+    }
+  }
+}
+
+query GetClassRooms($first: Int, $after: Cursor) {
+  classRooms(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}
+
+query GetSessionSubjects {
+  subjects {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}
+
+query GetSessionGroups($offset: Int!, $limit: Int!, $withTotalCount: Boolean!) {
+  groupsTable(offset: $offset, limit: $limit, withTotalCount: $withTotalCount) {
+    totalCount @include(if: $withTotalCount)
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation ChangeSessionStatus($id: ID!, $cancel: Boolean!) {
+  changeSessionStatus(id: $id, cancel: $cancel) {
+    ...SessionDetailsFragment
+  }
+}
+
+mutation RescheduleSession($id: ID!, $startAt: Time!, $endAt: Time!) {
+  rescheduleSession(id: $id, startAt: $startAt, endAt: $endAt) {
+    ...SessionDetailsFragment
+  }
+}
+
+mutation ChangeSessionClassroom($id: ID!, $roomID: ID!) {
+  changeSessionClassroom(id: $id, roomID: $roomID) {
+    ...SessionDetailsFragment
+  }
+}
+
+mutation GenerateSessionMeetingLink($id: ID!) {
+  generateSessionMeetingLink(id: $id) {
+    ...SessionDetailsFragment
+  }
+}
+
+mutation createSession(
+  $sessionInput: CreateSessionInput!
+  $scheduleInput: CreateScheduleInput!
+) {
+  createSessions(sessionInput: $sessionInput, scheduleInput: $scheduleInput)
+}
+
+query GetPendingAttendanceSessionsCount {
+  sessions(where: { attendanceSubmitted: true, attendanceApproved: false }) {
+    totalCount
+  }
+}
+
+query GetPendingAttendanceSessions($first: Int, $after: Cursor) {
+  sessions(
+    first: $first
+    after: $after
+    where: { attendanceSubmitted: true, attendanceApproved: false }
+    orderBy: { field: END_AT, direction: DESC }
+  ) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
+        id
+
+        startAt
+        endAt
+
+        schedule {
+          group {
+            id
+            name
+          }
+          assignment {
+            teacher {
+              id
+              firstName
+              lastName
+            }
+          }
+        }
+
+        attendance {
+          id
+          isPresent
+          reason
+          student {
+            id
+            firstName
+            lastName
+          }
+        }
+      }
+    }
+  }
+}
+
+subscription sessionUpdated {
+  sessionUpdated {
+    id
+    startAt
+    endAt
+    durationMin
+    free
+    canceled
+    meetURL
+    schedule {
+      id
+      rrule
+      subject {
+        id
+        name
+      }
+      group {
+        id
+        name
+        color
+      }
+      assignment {
+        id
+        teacher {
+          id
+          firstName
+          lastName
+          email
+        }
+      }
+    }
+    class {
+      id
+      name
+    }
+    enrollments {
+      id
+      student {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}

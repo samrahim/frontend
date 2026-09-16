@@ -1,0 +1,269 @@
+query StudentsTable(
+  $offset: Int!
+  $limit: Int!
+  $orderBy: StudentOrder
+  $where: StudentWhereInput
+  $withTotalCount: Boolean!
+) {
+  studentsTable(
+    offset: $offset
+    limit: $limit
+    where: $where
+    orderBy: $orderBy
+    withTotalCount: $withTotalCount
+  ) {
+    totalCount @include(if: $withTotalCount)
+    edges {
+      node {
+        ...StudentTableFields
+      }
+    }
+  }
+}
+
+mutation CreateStudent(
+  $firstName: String!
+  $lastName: String!
+  $email: String!
+  $phone: String!
+  $dateOfBirth: Time!
+  $gender: StudentGender!
+  $creatorID: ID!
+  $address: String
+  $isSick: Boolean
+  $healthNote: String
+  $parentID: ID!
+) {
+  createStudent(
+    input: {
+      firstName: $firstName
+      lastName: $lastName
+      email: $email
+      phone: $phone
+      dateOfBirth: $dateOfBirth
+      gender: $gender
+      creatorID: $creatorID
+      address: $address
+      isSick: $isSick
+      healthNote: $healthNote
+      parentID: $parentID
+    }
+  ) {
+    ...StudentTableFields
+  }
+}
+
+mutation UpdateStudent($id: ID!, $input: UpdateStudentInput!) {
+  updateStudent(id: $id, input: $input) {
+    firstName
+    lastName
+    dateOfBirth
+    gender
+    email
+    phone
+    parent {
+      firstName
+      lastName
+      id
+      phones
+    }
+    isSick
+    healthNote
+    address
+  }
+}
+
+mutation updateparent($input: UpdateParentInput!, $id: ID!) {
+  updateParent(id: $id, input: $input) {
+    id
+    firstName
+    lastName
+    phones
+  }
+}
+mutation BanStudent($id: ID!) {
+  banStudent(id: $id) {
+    id
+  }
+}
+
+mutation ActivateStudent($id: ID!) {
+  activateStudent(id: $id) {
+    id
+  }
+}
+
+subscription onStudentCreated {
+  studentCreated {
+    firstName
+    lastName
+    dateOfBirth
+    phone
+    gender
+  }
+}
+
+subscription onStudentUpdated {
+  studentUpdated {
+    id
+    firstName
+    lastName
+    dateOfBirth
+    phone
+    gender
+    email
+    isSick
+    healthNote
+    parent {
+      id
+      firstName
+      lastName
+      familyMember {
+        id
+        type
+      }
+      phones
+    }
+    enroll {
+      startAt
+      stopped
+      note
+
+      endAt
+
+      group {
+        id
+        name
+      }
+    }
+  }
+}
+query GetStudentDetails($id: ID!) {
+  node(id: $id) {
+    ... on Student {
+      id
+      firstName
+      lastName
+      createdAt
+      address
+      email
+      phone
+      dateOfBirth
+      description
+      picture
+      gender
+      active
+      banned
+      isSick
+      healthNote
+      activatedAt
+      creator {
+        ...Creator
+      }
+      activatedBy {
+        ...Creator
+      }
+      enroll {
+        id
+        createdAt
+        startAt
+        endAt
+        stopped
+        discount
+        note
+        group {
+          id
+          name
+        }
+      }
+      hifdhsessions {
+        id
+        surah
+        fromAyah
+        toAyah
+        type
+        createdAt
+        evaluation
+        note
+        deletedAt
+      }
+      parent {
+        id
+        firstName
+        lastName
+        phones
+        familyMember {
+          id
+          type
+        }
+      }
+      recitationsessions {
+        id
+        surah
+
+        fromAyah
+        toAyah
+        type
+        createdAt
+        evaluation
+        note
+        deletedAt
+      }
+    }
+  }
+}
+
+fragment Creator on User {
+  id
+  firstName
+  lastName
+}
+
+query exportStudentExcel {
+  exportExcel
+}
+
+query enrollemntInfo($where: CourseEnrollmentWhereInput!) {
+  courseEnrollments(where: $where) {
+    edges {
+      node {
+        startAt
+        endAt
+        student {
+          firstName
+          lastName
+          id
+        }
+        discount
+        note
+        group {
+          id
+          name
+          billingUnit
+          color
+        }
+        paymentPlans {
+          amount
+          amount
+          dueDate
+          monthIndex
+        }
+        invoices {
+          id
+          amountDue
+          amountPaid
+          paidDate
+          transactions {
+            note
+            amount
+            cashier {
+              id
+              firstName
+              lastName
+            }
+          }
+        }
+      }
+    }
+  }
+}

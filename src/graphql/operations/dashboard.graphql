@@ -1,0 +1,13 @@
+query dashboardData {
+  dashboardData {
+    students
+    teachers
+    users
+    rooms
+    grades
+    subjects
+    groups
+    withdraw
+    amount
+  }
+}

@@ -1,0 +1,143 @@
+mutation CreateHifdh($input: CreateHifdhInput!, $file: Upload) {
+  createHifdh(input: $input, file: $file) {
+    id
+    surah
+    fromAyah
+    toAyah
+    type
+    evaluation
+    note
+    createdAt
+    audio
+    student {
+      id
+      firstName
+      lastName
+    }
+    teacher {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+query hifdhs(
+  $after: Cursor
+  $first: Int
+  $before: Cursor
+  $last: Int
+  $orderBy: HifdhOrder
+  $where: HifdhWhereInput
+) {
+  hifdhs(
+    after: $after
+    first: $first
+    before: $before
+    last: $last
+    orderBy: $orderBy
+    where: $where
+  ) {
+    edges {
+      node {
+        id
+        createdAt
+        updatedAt
+        surah
+
+        fromAyah
+        toAyah
+        type
+        evaluation
+        note
+        audio
+        deletedAt
+        student {
+          id
+          firstName
+          lastName
+        }
+        teacher {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+
+mutation updatehifdh($input: UpdateHifdhInput!, $id: ID!, $file: Upload) {
+  updateHifdh(id: $id, input: $input, file: $file) {
+    id
+    updatedAt
+    createdAt
+    surah
+    audio
+    fromAyah
+    toAyah
+    type
+    evaluation
+    note
+    student {
+      firstName
+      lastName
+      id
+    }
+    teacher {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onHifdhCreated {
+  hifdhCreated {
+    id
+    updatedAt
+    createdAt
+    teacher {
+      id
+      firstName
+      lastName
+    }
+    surah
+    fromAyah
+    toAyah
+    evaluation
+    audio
+    note
+
+    student {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onHifdhUpdated {
+  hifdhUpdated {
+    id
+    updatedAt
+    createdAt
+    teacher {
+      id
+      firstName
+      lastName
+    }
+    surah
+    fromAyah
+    toAyah
+    evaluation
+    audio
+    note
+
+    student {
+      id
+      firstName
+      lastName
+    }
+  }
+}

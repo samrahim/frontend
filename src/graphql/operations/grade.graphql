@@ -1,0 +1,49 @@
+mutation createGrade($input: CreateGradeInput!) {
+  createGrade(input: $input) {
+    id
+    name
+    creator {
+      id
+      lastName
+      firstName
+    }
+    createdAt
+  }
+}
+
+query GetGrades {
+  grades(first: 100) {
+    edges {
+      node {
+        id
+        name
+        createdAt
+        creator {
+          lastName
+          firstName
+        }
+      }
+    }
+  }
+}
+subscription onGradeCreated {
+  gradeCreated {
+    name
+    creator {
+      id
+      lastName
+      firstName
+    }
+  }
+}
+
+subscription onGradeUpdated {
+  gradeUpdated {
+    name
+    creator {
+      id
+      lastName
+      firstName
+    }
+  }
+}

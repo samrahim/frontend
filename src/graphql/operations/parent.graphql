@@ -1,0 +1,62 @@
+mutation createParent($input: CreateParentInput!) {
+  createParent(input: $input) {
+    firstName
+    lastName
+    phones
+    id
+    familyMember {
+      id
+      type
+    }
+  }
+}
+
+query parent($where: ParentWhereInput!) {
+  parents(where: $where) {
+    edges {
+      node {
+        id
+        firstName
+        lastName
+        phones
+        familyMember {
+          id
+          type
+        }
+      }
+    }
+  }
+}
+
+mutation createFamilyMember($input: CreateFamilyMemberInput!) {
+  addFamilyMember(input: $input) {
+    id
+    type
+  }
+}
+
+subscription onfamilymemberCreated {
+  familyMemberCreated {
+    id
+    type
+  }
+}
+
+query GetFamilyMembers(
+  $first: Int
+  $after: Cursor
+  $where: FamilyMemberWhereInput
+) {
+  getfamilyMembers(first: $first, after: $after, where: $where) {
+    edges {
+      node {
+        id
+        type
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

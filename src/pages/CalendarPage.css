@@ -1,0 +1,485 @@
+/* React Big Calendar - Transparent Borders */
+
+/* Light mode borders */
+.rbc-calendar {
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+.rbc-header {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  padding: 10px 3px;
+}
+
+.rbc-today {
+  background-color: transparent;
+}
+
+.rbc-off-range-bg {
+  background-color: transparent;
+}
+
+.rbc-month-row,
+.rbc-date-cell,
+.rbc-time-slot {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-timeslot-group {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-time-content {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-day-bg {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-toolbar {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  padding: 15px 0;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.rbc-toolbar button {
+  outline: none;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #3b82f6;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #e0e7ff;
+}
+
+.rbc-agenda-view {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-time-header-gutter {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-time-header {
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.rbc-show-more {
+  color: #3b82f6;
+}
+
+.rbc-show-more:hover {
+  background-color: #e0e7ff;
+}
+
+.rbc-event {
+  background-color: #3b82f6;
+  border: none;
+}
+
+.rbc-event:hover {
+  background-color: #2563eb;
+}
+
+.rbc-event.rbc-event-label {
+  padding: 2px 5px;
+}
+
+.rbc-event-label {
+  font-size: 12px;
+}
+
+.rbc-event-content {
+  padding: 4px;
+  font-size: 12px;
+}
+
+.rbc-selected {
+  background-color: #10b981;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  .rbc-header {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #f3f4f6;
+  }
+
+  .rbc-month-row,
+  .rbc-date-cell,
+  .rbc-time-slot {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #1f2937;
+  }
+
+  .rbc-timeslot-group {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .rbc-time-content {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #1f2937;
+  }
+
+  .rbc-day-bg {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #1f2937;
+  }
+
+  .rbc-toolbar {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+
+  .rbc-agenda-view {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+
+  .rbc-agenda-view table.rbc-agenda-table {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .rbc-time-header-gutter {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #111827;
+  }
+
+  .rbc-time-header {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: #111827;
+  }
+
+  .rbc-day-slot .rbc-time-slot {
+    background-color: #1f2937;
+  }
+
+  .rbc-toolbar button {
+    background-color: #374151;
+    color: #f3f4f6;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .rbc-toolbar button:hover {
+    background-color: #4b5563;
+  }
+
+  .rbc-toolbar button.rbc-active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  .rbc-off-range-bg {
+    background-color: #111827;
+  }
+
+  .rbc-current-time-indicator {
+    background-color: #3b82f6;
+  }
+}
+
+.event-badge:hover {
+  background-color: #c7cffe;
+}
+
+.event-badge.canceled {
+  background-color: #ffe0e0;
+  color: #d32f2f;
+  text-decoration: line-through;
+}
+
+.event-more {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+  padding: 2px 6px;
+}
+
+/* Week View */
+.week-view {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.week-day {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.week-day.today {
+  background-color: #f0f7ff;
+  border-color: #6c63ff;
+  border-width: 2px;
+}
+
+.week-day-header {
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.week-day-name {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.week-day-date {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.week-day-events {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.week-event {
+  background-color: #f5f5f5;
+  border-left: 3px solid #6c63ff;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.week-event.canceled {
+  background-color: #ffe0e0;
+  border-left-color: #d32f2f;
+  opacity: 0.7;
+}
+
+.event-time {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.event-title {
+  color: #555;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-teacher {
+  color: #6c63ff;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Day View */
+.day-view-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.day-date {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.day-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-session-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.day-session-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.day-session-card.canceled {
+  background-color: #ffe0e0;
+  opacity: 0.7;
+}
+
+.session-time {
+  font-weight: 600;
+  font-size: 14px;
+  color: #6c63ff;
+  margin-bottom: 8px;
+}
+
+.session-subject {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.session-teacher {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.session-duration {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.canceled-badge {
+  display: inline-block;
+  background-color: #d32f2f;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.no-sessions {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-style: italic;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-navigation {
+    justify-content: space-between;
+  }
+
+  .week-view {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .page-layout {
+    flex-direction: column;
+  }
+
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .view-mode-selector {
+    justify-content: center;
+  }
+
+  .week-view {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .calendar-day {
+    min-height: 80px;
+  }
+
+  .event-badge {
+    font-size: 10px;
+  }
+
+  .month-view {
+    display: block;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-header {
+    padding: 12px;
+  }
+
+  .calendar-header h1 {
+    font-size: 20px;
+  }
+
+  .calendar-title {
+    gap: 8px;
+  }
+
+  .title-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .calendar-controls {
+    padding: 12px;
+  }
+
+  .view-mode-btn {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  .week-view {
+    grid-template-columns: 1fr;
+  }
+
+  .week-day {
+    min-height: auto;
+    max-height: 200px;
+  }
+}

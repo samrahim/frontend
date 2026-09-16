@@ -1,0 +1,39 @@
+mutation createClassroom($input: CreateClassRoomInput!) {
+  createClassRoom(input: $input) {
+    id
+    name
+    color
+    qty
+  }
+}
+
+query classRooms($after: Cursor, $first: Int, $before: Cursor, $last: Int) {
+  classRooms(after: $after, first: $first, before: $before, last: $last) {
+    edges {
+      cursor
+      node {
+        id
+        name
+        color
+        qty
+      }
+    }
+  }
+}
+
+subscription classroomCreated {
+  classRoomCreated {
+    id
+    name
+    color
+    qty
+  }
+}
+subscription classroomUpdated {
+  classRoomUpdated {
+    id
+    name
+    color
+    qty
+  }
+}

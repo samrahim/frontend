@@ -1,0 +1,84 @@
+mutation createTransaction($input: CreateTransactionsInput!) {
+  createTransaction(input: $input) {
+    amount
+    type
+    createdAt
+    note
+
+    invoice {
+      id
+      amountDue
+      amountPaid
+      paidDate
+
+      enrollment {
+        student {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+
+query transaction(
+  $where: TransactionsWhereInput!
+  $after: Cursor
+  $before: Cursor
+  $orderBy: TransactionsOrder!
+) {
+  transactionsSlice(
+    where: $where
+    first: 10
+    after: $after
+    before: $before
+    orderBy: $orderBy
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        amount
+        createdAt
+        cashier {
+          id
+          firstName
+          lastName
+        }
+        student {
+          firstName
+          lastName
+        }
+        invoice {
+          createdAt
+          paidDate
+        }
+      }
+    }
+  }
+}
+
+subscription onCreateTransacion($input: ID!) {
+  transactionCreated(studentID: $input) {
+    amount
+    type
+    createdAt
+    note
+
+    invoice {
+      id
+      amountDue
+      amountPaid
+      paidDate
+
+      enrollment {
+        student {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}

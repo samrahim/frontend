@@ -1,0 +1,113 @@
+fragment CreatorFields on User {
+  id
+  firstName
+  lastName
+  email
+  picture
+}
+
+fragment StudentTableFields on Student {
+  id
+  firstName
+  lastName
+  picture
+  email
+  phone
+  createdAt
+  creator {
+    ...CreatorFields
+  }
+}
+
+fragment StudentPersonalInfo on Student {
+  id
+  firstName
+  lastName
+  email
+  phone
+  dateOfBirth
+  gender
+  picture
+  address
+  createdAt
+  updatedAt
+}
+
+fragment StudentScholarInfo on Student {
+  id
+  dateOfBirth
+  level
+}
+
+fragment StudentAdditionalInfo on Student {
+  id
+  picture
+  createdAt
+}
+
+fragment TeacherFields on Teacher {
+  id
+  firstName
+  lastName
+  email
+  phone
+  picture
+  gender
+  paymentAmount
+  createdAt
+  creator {
+    ...CreatorFields
+  }
+}
+
+fragment GroupBasicInfo on Group {
+  id
+  name
+  pricePerUnit
+  expected
+  billingUnit
+  startDate
+  createdAt
+  updatedAt
+  creator {
+    ...CreatorFields
+  }
+}
+
+fragment CourseEnrollmentFields on CourseEnrollment {
+  id
+  student {
+    ...StudentTableFields
+  }
+}
+
+fragment GradeFields on Grade {
+  id
+}
+
+fragment SessionFragment on Session {
+  id
+  startAt
+  endAt
+  durationMin
+}
+
+fragment AnnouncementFragment on Announcement {
+  id
+  title
+  content
+  createdAt
+  creator {
+    ...CreatorFields
+  }
+}
+
+fragment RouteFrg on Route {
+  id
+  name
+}
+
+fragment InfoFields on Info {
+  id
+  name
+}

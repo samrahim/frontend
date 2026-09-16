@@ -1,0 +1,151 @@
+mutation CreateRecitation($input: CreateRecitationInput!, $file: Upload) {
+  createRecitation(input: $input, file: $file) {
+    id
+    surah
+    fromAyah
+    toAyah
+    type
+    evaluation
+    note
+    createdAt
+    student {
+      id
+      firstName
+      lastName
+    }
+    teacher {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+query recitations(
+  $after: Cursor
+  $first: Int
+  $before: Cursor
+  $last: Int
+  $orderBy: RecitationOrder
+  $where: RecitationWhereInput
+) {
+  recitations(
+    after: $after
+    first: $first
+    before: $before
+    last: $last
+    orderBy: $orderBy
+    where: $where
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        id
+        createdAt
+        surah
+        fromAyah
+        toAyah
+        type
+        evaluation
+        note
+        deletedAt
+        audio
+        student {
+          id
+          firstName
+          lastName
+        }
+        teacher {
+          id
+          firstName
+          lastName
+        }
+        updatedAt
+      }
+    }
+  }
+}
+
+mutation updateRecitation(
+  $input: UpdateRecitationInput!
+  $id: ID!
+  $file: Upload
+) {
+  updateRecitation(id: $id, input: $input, file: $file) {
+    id
+    updatedAt
+    createdAt
+    surah
+    audio
+    fromAyah
+    toAyah
+    type
+    evaluation
+    note
+    student {
+      firstName
+      lastName
+      id
+    }
+    teacher {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onRecitaionCreated {
+  recitationCreated {
+    id
+    updatedAt
+    createdAt
+    teacher {
+      id
+      firstName
+      lastName
+    }
+    surah
+    fromAyah
+    toAyah
+    evaluation
+    audio
+    note
+
+    student {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+subscription onRecitaionUpdated {
+  recitationUpdated {
+    id
+    updatedAt
+    createdAt
+    teacher {
+      id
+      firstName
+      lastName
+    }
+    surah
+    fromAyah
+    toAyah
+    evaluation
+    audio
+    note
+
+    student {
+      id
+      firstName
+      lastName
+    }
+  }
+}

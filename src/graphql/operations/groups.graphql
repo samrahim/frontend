@@ -1,0 +1,285 @@
+query GroupsTable(
+  $offset: Int!
+  $limit: Int!
+  $orderBy: GroupOrder
+  $where: GroupWhereInput
+  $withTotalCount: Boolean!
+) {
+  groupsTable(
+    offset: $offset
+    limit: $limit
+    where: $where
+    orderBy: $orderBy
+    withTotalCount: $withTotalCount
+  ) {
+    totalCount @include(if: $withTotalCount)
+    edges {
+      node {
+        ...GroupBasicInfo
+      }
+    }
+  }
+}
+
+query GetGroups {
+  groups {
+    edges {
+      node {
+        ...GroupBasicInfo
+      }
+    }
+  }
+}
+
+query GetGroupDetails($id: ID!) {
+  groupDetails(id: $id) {
+    ...GroupBasicInfo
+  }
+}
+
+query GetGroupDetailsComplete($id: ID!) {
+  groupDetails(id: $id) {
+    id
+    name
+    pricePerUnit
+    expected
+    billingUnit
+    color
+    blockStudents
+    trackBilling
+    invoiceThreshold
+    hourlyVolume
+    createdAt
+    updatedAt
+    creator {
+      ...CreatorFields
+    }
+    academicYear {
+      id
+      name
+      isActive
+    }
+    grade {
+      id
+      name
+    }
+    groupType {
+      id
+      label
+    }
+    course {
+      id
+      student {
+        id
+        firstName
+        lastName
+        email
+      }
+      startAt
+      endAt
+      stopped
+      discount
+      note
+      stoppedReason
+    }
+    assignments {
+      id
+      assignedAt
+      stoppedAt
+      trackInvoices
+      pricePerUnit
+      billingUnit
+      teacher {
+        id
+        firstName
+        lastName
+        email
+        picture
+      }
+      subject {
+        id
+        name
+      }
+      schedules {
+        id
+        rrule
+        startTime
+        endTime
+        room {
+          name
+          id
+        }
+      }
+      stoppedBy {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+mutation CreateGroup(
+  $input: CreateGroupInput!
+  $teachers: [CreateTeachingAssignmentInput!]!
+  $rrules: [CreateScheduleInput]
+) {
+  createGroup(input: $input, teachers: $teachers, rrules: $rrules) {
+    ...GroupBasicInfo
+  }
+}
+
+mutation addSubjectWithTeacherToGroup(
+  $input: AddSubjectWithTeacherToGroupInput!
+) {
+  addSubjectWithTeacherToGroup(input: $input)
+}
+
+mutation UpdateGroup($id: ID!, $input: UpdateGroupInput!) {
+  updateGroup(id: $id, input: $input) {
+    ...GroupBasicInfo
+  }
+}
+
+mutation EditTeacherAssignment(
+  $id: ID!
+  $input: UpdateTeachingAssignmentInput!
+) {
+  editTeacherAssignment(id: $id, input: $input) {
+    id
+    assignedAt
+    stoppedAt
+    trackInvoices
+    pricePerUnit
+    billingUnit
+    teacher {
+      id
+      firstName
+      lastName
+      email
+      picture
+    }
+    subject {
+      id
+      name
+    }
+    schedules {
+      id
+      rrule
+      startTime
+      endTime
+      room {
+        name
+        id
+      }
+    }
+  }
+}
+
+mutation replaceTeacherAssignment($id: ID!, $newTeacherId: ID!) {
+  replaceTeacherAssignment(id: $id, newTeacherId: $newTeacherId) {
+    id
+  }
+}
+
+query GetGroupTypes {
+  groupTypes(first: 100) {
+    edges {
+      node {
+        id
+        label
+      }
+    }
+  }
+}
+
+query GetAcademicYears {
+  academicYears(first: 100) {
+    edges {
+      node {
+        id
+        name
+        isActive
+      }
+    }
+  }
+}
+
+mutation CreateBulkCourseEnrollments($inputs: [CreateCourseEnrollmentInput!]!) {
+  createBulkCourseEnrollments(inputs: $inputs) {
+    id
+    student {
+      id
+      firstName
+      lastName
+    }
+    startAt
+    endAt
+    stopped
+    discount
+  }
+}
+
+mutation UpdateCourseEnrollment(
+  $id: ID!
+  $input: UpdateCourseEnrollmentInput!
+) {
+  updateCourseEnrollment(id: $id, input: $input) {
+    id
+    student {
+      id
+      firstName
+      lastName
+    }
+    startAt
+    endAt
+    stopped
+    discount
+  }
+}
+
+subscription OnGroupCreated {
+  groupCreated {
+    ...GroupBasicInfo
+  }
+}
+
+subscription OnGroupUpdated {
+  groupUpdated {
+    ...GroupBasicInfo
+    assignments {
+      id
+      assignedAt
+      stoppedAt
+      trackInvoices
+      pricePerUnit
+      billingUnit
+      teacher {
+        id
+        firstName
+        lastName
+        email
+        picture
+      }
+      subject {
+        id
+        name
+      }
+      schedules {
+        id
+        rrule
+        startTime
+        endTime
+        room {
+          name
+          id
+        }
+      }
+      stoppedBy {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
