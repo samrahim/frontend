@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build:vite": "vite build",
-   "build:electron": "esbuild electron/main.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist-electron/main.js --external:electron",
+    "build:electron": "esbuild electron/main.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist-electron/main.js --external:electron",
     "build": "npm run build:vite && npm run build:electron",
     "preview": "vite preview",
     "electron": "electron .",
