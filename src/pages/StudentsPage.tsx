@@ -47,7 +47,7 @@ export function StudentsPage() {
       const { data } = await exportExcel();
 
       if (data?.exportExcel) {
-        const fileUrl = `http://localhost:8081${data.exportExcel}`;
+        const fileUrl = `http://62.171.141.151:8081${data.exportExcel}`;
 
         // safer (handles spaces)
         const encodedUrl = encodeURI(fileUrl);

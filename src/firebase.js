@@ -32,5 +32,5 @@ export const googleProvider = new GoogleAuthProvider();
 
 // Connect to Auth Emulator if running in local development
 if (import.meta.env.DEV || import.meta.env.VITE_USE_EMULATOR === "true") {
-  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  // connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
 }

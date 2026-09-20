@@ -15,7 +15,7 @@ import { createUploadLink } from "apollo-upload-client";
 import { auth } from "../firebase";
 
 const BACKEND_URL =
-  import.meta.env.VITE_GRAPHQL_URL || "http://localhost:8081/query";
+  import.meta.env.VITE_GRAPHQL_URL || "http://62.171.141.151:8081/query";
 
 const BACKEND_WS_URL = BACKEND_URL.replace(/^http/, "ws");
 export const UPLOAD_URL = BACKEND_URL.replace("/query", "");

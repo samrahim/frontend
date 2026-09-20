@@ -69,9 +69,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const idToken = await firebaseUser.getIdToken(true);
           localStorage.setItem("authToken", idToken);
 
-          const profileResponse = await fetch("http://localhost:8081/profile", {
-            headers: { Authorization: "Bearer " + idToken },
-          });
+          const profileResponse = await fetch(
+            "http://62.171.141.151:8081/profile",
+            {
+              headers: { Authorization: "Bearer " + idToken },
+            }
+          );
 
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
@@ -106,13 +109,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // 1. طلب أول بدون forceRefresh لمعرفة الـ Profile
       let idToken = await userCredential.user.getIdToken();
 
-      const profileResponse = await fetch("http://localhost:8081/profile", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + idToken,
-        },
-      });
+      const profileResponse = await fetch(
+        "http://62.171.141.151:8081/profile",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + idToken,
+          },
+        }
+      );
       console.log(profileResponse);
       if (!profileResponse.ok) {
         throw new Error("Failed to fetch profile");

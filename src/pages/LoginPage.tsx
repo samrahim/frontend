@@ -44,7 +44,7 @@ export function LoginPage() {
         formData.append("address", address);
         formData.append("role", role);
 
-        const response = await fetch("http://localhost:8081/setup", {
+        const response = await fetch("http://62.171.141.151:8081/setup", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,9 +67,12 @@ export function LoginPage() {
 
         // جلب الـ Profile لتحديث AuthContext قبل التوجيه
         const idToken = localStorage.getItem("authToken");
-        const profileResponse = await fetch("http://localhost:8081/profile", {
-          headers: { Authorization: "Bearer " + idToken },
-        });
+        const profileResponse = await fetch(
+          "http://62.171.141.151:8081/profile",
+          {
+            headers: { Authorization: "Bearer " + idToken },
+          }
+        );
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           setUser(profileData);
