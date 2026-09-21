@@ -591,10 +591,7 @@ export function CreateRecitationPage() {
                   }}
                 >
                   {showQuran ? (
-                    <QuranViewer
-                      verses={quranVerses?.verses ?? []}
-                      isArabic={isArabic}
-                    />
+                    <QuranViewer verses={quranVerses?.verses ?? []} />
                   ) : (
                     <Flex
                       sx={{

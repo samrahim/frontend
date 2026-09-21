@@ -17,6 +17,8 @@ export interface VerseRangeResult {
   total: number;
   verses: Verse[];
 }
+const surahLoaders = import.meta.glob("../data/surah_*.json");
+const loadFrench = () => import("../data/quran_fr.json");
 
 export const getVerseRange = async (
   surahId: number | string,
@@ -32,46 +34,36 @@ export const getVerseRange = async (
     throw new Error("جميع الحقول مطلوبة");
   }
 
-  // 1. جلب بيانات السورة الأساسية (تتضمن العربية والإنجليزية)
-  const surahResponse = await fetch(`/surah_${surahNum}.json`);
-  if (!surahResponse.ok) {
+  // 1. Surah data
+  const loader = surahLoaders[`../data/surah_${surahNum}.json`];
+  if (!loader) {
     throw new Error("السورة غير موجودة");
   }
-  const surahData = await surahResponse.json();
+  const surahData: any = ((await loader()) as { default: unknown }).default;
 
+  // 2. French translation (only when needed)
   let quranFrData: Record<string, Record<string, string>> | null = null;
-
-  // 2. إذا كانت اللغة فرنسية، نقوم بجلب ملف quran_fr.json
   if (lang.startsWith("fr")) {
     try {
-      const frResponse = await fetch("/quran_fr.json");
-      if (frResponse.ok) {
-        quranFrData = await frResponse.json();
-      }
+      quranFrData = (await loadFrench()).default as Record<
+        string,
+        Record<string, string>
+      >;
     } catch (err) {
       console.error("فشل في تحميل ملف quran_fr.json", err);
     }
   }
 
-  // 3. تصفية الآيات حسب النطاق وإرفاق النص الفرنسي عند الحاجة
+  // 3. Filter verses (unchanged)
   const filteredVerses = surahData.verses
     .filter((v: any) => v.number >= fromNum && v.number <= toNum)
-    .map((v: any) => {
-      const frenchText = quranFrData?.[surahNum]?.[v.number] || "";
-      return {
-        ...v,
-        text: {
-          ...v.text,
-          fr: frenchText,
-        },
-      };
-    });
+    .map((v: any) => ({
+      ...v,
+      text: { ...v.text, fr: quranFrData?.[surahNum]?.[v.number] || "" },
+    }));
 
   return {
-    surah: {
-      number: surahData.number,
-      name: surahData.name,
-    },
+    surah: { number: surahData.number, name: surahData.name },
     from_verse: fromNum,
     to_verse: toNum,
     total: filteredVerses.length,
