@@ -16,30 +16,24 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"), // note .cjs
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  const startUrl = isDev
-    ? "http://localhost:5173"
-    : path.join(__dirname, "../dist/index.html");
-
-  if (isDev) {
+  if (!app.isPackaged) {
     mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(startUrl);
+    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
   }
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
+  mainWindow.on("closed", () => (mainWindow = null));
 }
 
-app.on("ready", createWindow);
-
+app.whenReady().then(() => {
+  createWindow();
+});
 app.on("window-all-closed", () => {
   // process.platform is fully typed when @types/node is active
   if (process.platform !== "darwin") {

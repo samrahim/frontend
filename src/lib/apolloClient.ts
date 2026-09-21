@@ -24,7 +24,7 @@ const getFreshToken = async (): Promise<string | null> => {
   if (auth.currentUser) {
     try {
       const token = await auth.currentUser.getIdToken();
-      console.log("token-----------", token);
+
       localStorage.setItem("authToken", token);
       return token;
     } catch {

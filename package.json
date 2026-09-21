@@ -2,18 +2,23 @@
   "name": "school-app-desktop",
   "version": "1.0.0",
   "description": "School App - React + Electron Desktop Application",
+  "author": {
+    "name": "Samai Rahim",
+    "email": "rahimsamai92@gmail.com"
+  },
   "main": "dist-electron/main.js",
   "type": "module",
-  "homepage": "./",
+  
   "scripts": {
     "dev": "vite",
     "build:vite": "vite build",
-    "build:electron": "esbuild electron/main.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist-electron/main.js --external:electron && esbuild electron/preload.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist-electron/preload.js --external:electron",
+    "build:electron": "esbuild electron/main.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist-electron/main.js --external:electron && esbuild electron/preload.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist-electron/preload.cjs --external:electron",
     "build": "npm run build:vite && npm run build:electron",
     "preview": "vite preview",
     "electron": "electron .",
     "electron-dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron-build": "npm run build && electron-builder --win",
+    "electron-build:linux": "npm run build && electron-builder --linux",
     "type-check": "tsc --noEmit",
     "codegen": "graphql-codegen",
     "codegen:watch": "node scripts/watch-codegen.js",
@@ -87,6 +92,15 @@
   "build": {
     "appId": "com.school.app",
     "productName": "School App",
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education",
+      "icon": "assets/icon.png",
+      "maintainer": "Samai Rahim rahimsamai92@gmail.com "
+    },
     "directories": {
       "buildResources": "assets",
       "output": "release"
@@ -95,13 +109,10 @@
       "dist-electron/**",
       "dist/**"
     ],
-    "win": {
-      "target": [
-        "portable",
-        "zip"
-      ],
-      "icon": "public/icon.ico"
-    },
+   "win": {
+  "target": ["nsis", "portable", "zip"],
+  "icon": "public/icon.ico"
+},
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

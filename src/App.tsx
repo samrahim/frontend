@@ -1,10 +1,11 @@
 import React from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
+
 import { ApolloProvider } from "@apollo/client";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { ThemeUIProvider } from "theme-ui";
