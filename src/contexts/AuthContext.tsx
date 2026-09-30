@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           localStorage.setItem("authToken", idToken);
 
           const profileResponse = await fetch(
-            "http://62.171.141.151:8081/profile",
+            "http://62.171.141.151:8088/profile",
             {
               headers: { Authorization: "Bearer " + idToken },
             }
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       let idToken = await userCredential.user.getIdToken();
 
       const profileResponse = await fetch(
-        "http://62.171.141.151:8081/profile",
+        "http://62.171.141.151:8088/profile",
         {
           method: "GET",
           headers: {

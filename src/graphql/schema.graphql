@@ -814,6 +814,18 @@ type AutoRoute {
   routes: [GeneratedRoute!]!
 }
 
+type BillingPeriodPreview {
+  start: Time!
+  end: Time!
+  isPartial: Boolean!
+  amount: Float!
+}
+
+type BillingPreview {
+  groupEndDate: Time!
+  periods: [BillingPeriodPreview!]!
+}
+
 type Catering implements Node {
   id: ID!
 
@@ -5367,7 +5379,7 @@ type Mutation {
   updateClassRooms(ids: [ID!]!, input: UpdateClassRoomInput!): [ClassRoom!]!
   deleteClassRoom(id: Int!): Boolean!
   importClassRooms(file: Upload!): Boolean!
-  createBulkCourseEnrollments(inputs: [CreateCourseEnrollmentInput!]!): [CourseEnrollment!]!
+  createBulkCourseEnrollments(inputs: [CreateCourseEnrollmentInput!]!, fragmentPrice: Float): [CourseEnrollment!]!
   updateCourseEnrollment(id: ID!, input: UpdateCourseEnrollmentInput!): CourseEnrollment!
   createChauffeur(input: CreateChauffeurInput!, picture: Upload, files: [Upload]): Chauffeur!
   updateChauffeur(id: ID!, input: UpdateChauffeurInput!, picture: Upload, files: [Upload]): Chauffeur!
@@ -6530,27 +6542,6 @@ type Query {
     """Filtering options for Exams returned from the connection."""
     where: ExamWhereInput
   ): ExamConnection!
-  familyMembers(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-
-    """Ordering options for FamilyMembers returned from the connection."""
-    orderBy: FamilyMemberOrder
-
-    """Filtering options for FamilyMembers returned from the connection."""
-    where: FamilyMemberWhereInput
-  ): FamilyMemberConnection!
   grades(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -7274,6 +7265,7 @@ type Query {
     """Filtering options for WithdrawTypes returned from the connection."""
     where: WithdrawTypeWhereInput
   ): WithdrawTypeConnection!
+  billingPreview(groupID: ID!, startAt: Time, discount: Float): BillingPreview!
   GetCateringSettings: CateringService!
   exportClassRoomExcel: String
   dashboardData: Dashboard!

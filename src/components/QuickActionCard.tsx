@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import React from "react";
+
 import { useNavigate } from "react-router-dom";
 import { Card, Grid, Flex, Heading, Text, Box } from "theme-ui";
 
@@ -31,14 +31,6 @@ export default function QuickActionsCard() {
       bgDark: "muted",
       onClick: () => navigate("/attendences"),
     },
-    {
-      title: t("dashboard.payInvoice"),
-      icon: "💳💰",
-      color: "success",
-      bgLight: "tableRowStripe",
-      bgDark: "muted",
-      onClick: () => navigate("/pay-invoice"),
-    },
   ];
 
   return (
@@ -68,7 +60,7 @@ export default function QuickActionsCard() {
       </Box>
 
       {/* Grid Layout */}
-      <Grid columns={[1, 2, 4]} gap={3}>
+      <Grid columns={[1, 2, 3]} gap={3}>
         {actions.map((action, idx) => (
           <Flex
             key={idx}

@@ -29,10 +29,11 @@
     "pricePerUnit": "السعر لكل وحدة",
     "title": "معلومات المدرسة",
     "changeLogo": "تغيير الشعار",
-    "schoolName": "اسم المدرسة",
+
     "schoolNamePlaceholder": "أدخل اسم المدرسة",
     "address": "العنوان",
     "addressPlaceholder": "أدخل عنوان المدرسة",
+    "schoolName": "نظام نور القرآن - الإدارة المتكاملة",
 
     "page": "صفحة",
 

@@ -43,7 +43,7 @@ import { CreateHifdhPage } from "./components/CreateHifh";
 import { CreateTeachertForm } from "./components/TeacherComponents/CreateTeacherForm";
 import { WithdrawsPage } from "./pages/WithdrawPage";
 import { RecitationDetails } from "./pages/RecitationDetails";
-import { PayInvoicePage } from "./pages/PayInvoicePage";
+
 import TeacherEditPage from "./pages/EditTeacherPage";
 
 import { EditRecitationPage } from "./pages/EditRecitaionPage";
@@ -226,16 +226,6 @@ function App() {
                         <AttendanceSubscriptionProvider>
                           <AttendancePage />
                         </AttendanceSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/pay-invoice"
-                    element={
-                      <ProtectedRoute>
-                        <FinanceSubscriptionProvider>
-                          <PayInvoicePage />
-                        </FinanceSubscriptionProvider>
                       </ProtectedRoute>
                     }
                   />

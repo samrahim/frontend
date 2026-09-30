@@ -736,6 +736,20 @@ export type AutoRoute = {
   unassigned: Array<Maybe<Scalars['Int']['output']>>;
 };
 
+export type BillingPeriodPreview = {
+  __typename?: 'BillingPeriodPreview';
+  amount: Scalars['Float']['output'];
+  end: Scalars['Time']['output'];
+  isPartial: Scalars['Boolean']['output'];
+  start: Scalars['Time']['output'];
+};
+
+export type BillingPreview = {
+  __typename?: 'BillingPreview';
+  groupEndDate: Scalars['Time']['output'];
+  periods: Array<BillingPeriodPreview>;
+};
+
 export type Catering = Node & {
   __typename?: 'Catering';
   /** Timestamp when catering was activated. */
@@ -4884,6 +4898,7 @@ export type MutationCreateAttendanceArgs = {
 
 
 export type MutationCreateBulkCourseEnrollmentsArgs = {
+  fragmentPrice?: InputMaybe<Scalars['Float']['input']>;
   inputs: Array<CreateCourseEnrollmentInput>;
 };
 
@@ -6276,6 +6291,7 @@ export type Query = {
   attendanceSettingsSlice: AttendanceSettingsConnection;
   attendances: AttendanceConnection;
   autoGenerateRoutes: AutoRoute;
+  billingPreview: BillingPreview;
   cateringServices: CateringServiceConnection;
   caterings: CateringConnection;
   chauffeurs: ChauffeurConnection;
@@ -6293,7 +6309,6 @@ export type Query = {
   exportTeacherExcel?: Maybe<Scalars['String']['output']>;
   extraMeet: ExtraMeet;
   extraMeets: Array<ExtraMeet>;
-  familyMembers: FamilyMemberConnection;
   filterStudents?: Maybe<StudentConnection>;
   getFamilyMember?: Maybe<FamilyMember>;
   getNotificationSettings: NotificationSettings;
@@ -6413,6 +6428,13 @@ export type QueryAttendancesArgs = {
 };
 
 
+export type QueryBillingPreviewArgs = {
+  discount?: InputMaybe<Scalars['Float']['input']>;
+  groupID: Scalars['ID']['input'];
+  startAt?: InputMaybe<Scalars['Time']['input']>;
+};
+
+
 export type QueryCateringServicesArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -6489,16 +6511,6 @@ export type QueryExportExamExcelArgs = {
 
 export type QueryExtraMeetArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryFamilyMembersArgs = {
-  after?: InputMaybe<Scalars['Cursor']['input']>;
-  before?: InputMaybe<Scalars['Cursor']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  last?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FamilyMemberOrder>;
-  where?: InputMaybe<FamilyMemberWhereInput>;
 };
 
 
@@ -12358,6 +12370,7 @@ export type GetAcademicYearsQuery = { __typename?: 'Query', academicYears: { __t
 
 export type CreateBulkCourseEnrollmentsMutationVariables = Exact<{
   inputs: Array<CreateCourseEnrollmentInput> | CreateCourseEnrollmentInput;
+  fragmentPrice?: InputMaybe<Scalars['Float']['input']>;
 }>;
 
 
@@ -12380,6 +12393,15 @@ export type OnGroupUpdatedSubscriptionVariables = Exact<{ [key: string]: never; 
 
 
 export type OnGroupUpdatedSubscription = { __typename?: 'Subscription', groupUpdated: { __typename?: 'Group', id: string, name: string, pricePerUnit: number, expected: number, billingUnit: GroupBillingUnit, startDate: any, createdAt?: any | null, updatedAt?: any | null, assignments?: Array<{ __typename?: 'TeachingAssignment', id: string, assignedAt: any, stoppedAt?: any | null, trackInvoices: boolean, pricePerUnit: number, billingUnit?: TeachingAssignmentBillingUnit | null, teacher?: { __typename?: 'Teacher', id: string, firstName: string, lastName: string, email?: string | null, picture?: string | null } | null, subject: { __typename?: 'Subject', id: string, name: string }, schedules?: Array<{ __typename?: 'Schedule', id: string, rrule: string, startTime?: any | null, endTime?: any | null, room?: { __typename?: 'ClassRoom', name: string, id: string } | null }> | null, stoppedBy?: { __typename?: 'User', id: string, firstName: string, lastName: string } | null }> | null, creator: { __typename?: 'User', id: string, firstName: string, lastName: string, email?: string | null, picture?: string | null } } };
+
+export type BillingPreviewQueryVariables = Exact<{
+  groupID: Scalars['ID']['input'];
+  startAt?: InputMaybe<Scalars['Time']['input']>;
+  discount?: InputMaybe<Scalars['Float']['input']>;
+}>;
+
+
+export type BillingPreviewQuery = { __typename?: 'Query', billingPreview: { __typename?: 'BillingPreview', groupEndDate: any, periods: Array<{ __typename?: 'BillingPeriodPreview', start: any, end: any, isPartial: boolean, amount: number }> } };
 
 export type CreateHifdhMutationVariables = Exact<{
   input: CreateHifdhInput;
@@ -14240,8 +14262,8 @@ export type GetAcademicYearsLazyQueryHookResult = ReturnType<typeof useGetAcadem
 export type GetAcademicYearsSuspenseQueryHookResult = ReturnType<typeof useGetAcademicYearsSuspenseQuery>;
 export type GetAcademicYearsQueryResult = Apollo.QueryResult<GetAcademicYearsQuery, GetAcademicYearsQueryVariables>;
 export const CreateBulkCourseEnrollmentsDocument = gql`
-    mutation CreateBulkCourseEnrollments($inputs: [CreateCourseEnrollmentInput!]!) {
-  createBulkCourseEnrollments(inputs: $inputs) {
+    mutation CreateBulkCourseEnrollments($inputs: [CreateCourseEnrollmentInput!]!, $fragmentPrice: Float) {
+  createBulkCourseEnrollments(inputs: $inputs, fragmentPrice: $fragmentPrice) {
     id
     student {
       id
@@ -14271,6 +14293,7 @@ export type CreateBulkCourseEnrollmentsMutationFn = Apollo.MutationFunction<Crea
  * const [createBulkCourseEnrollmentsMutation, { data, loading, error }] = useCreateBulkCourseEnrollmentsMutation({
  *   variables: {
  *      inputs: // value for 'inputs'
+ *      fragmentPrice: // value for 'fragmentPrice'
  *   },
  * });
  */
@@ -14416,6 +14439,57 @@ export function useOnGroupUpdatedSubscription(baseOptions?: ApolloReactHooks.Sub
       }
 export type OnGroupUpdatedSubscriptionHookResult = ReturnType<typeof useOnGroupUpdatedSubscription>;
 export type OnGroupUpdatedSubscriptionResult = Apollo.SubscriptionResult<OnGroupUpdatedSubscription>;
+export const BillingPreviewDocument = gql`
+    query BillingPreview($groupID: ID!, $startAt: Time, $discount: Float) {
+  billingPreview(groupID: $groupID, startAt: $startAt, discount: $discount) {
+    groupEndDate
+    periods {
+      start
+      end
+      isPartial
+      amount
+    }
+  }
+}
+    `;
+
+/**
+ * __useBillingPreviewQuery__
+ *
+ * To run a query within a React component, call `useBillingPreviewQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBillingPreviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBillingPreviewQuery({
+ *   variables: {
+ *      groupID: // value for 'groupID'
+ *      startAt: // value for 'startAt'
+ *      discount: // value for 'discount'
+ *   },
+ * });
+ */
+export function useBillingPreviewQuery(baseOptions: ApolloReactHooks.QueryHookOptions<BillingPreviewQuery, BillingPreviewQueryVariables> & ({ variables: BillingPreviewQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<BillingPreviewQuery, BillingPreviewQueryVariables>(BillingPreviewDocument, options);
+      }
+export function useBillingPreviewLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<BillingPreviewQuery, BillingPreviewQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<BillingPreviewQuery, BillingPreviewQueryVariables>(BillingPreviewDocument, options);
+        }
+// @ts-ignore
+export function useBillingPreviewSuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<BillingPreviewQuery, BillingPreviewQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<BillingPreviewQuery, BillingPreviewQueryVariables>;
+export function useBillingPreviewSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<BillingPreviewQuery, BillingPreviewQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<BillingPreviewQuery | undefined, BillingPreviewQueryVariables>;
+export function useBillingPreviewSuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<BillingPreviewQuery, BillingPreviewQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<BillingPreviewQuery, BillingPreviewQueryVariables>(BillingPreviewDocument, options);
+        }
+export type BillingPreviewQueryHookResult = ReturnType<typeof useBillingPreviewQuery>;
+export type BillingPreviewLazyQueryHookResult = ReturnType<typeof useBillingPreviewLazyQuery>;
+export type BillingPreviewSuspenseQueryHookResult = ReturnType<typeof useBillingPreviewSuspenseQuery>;
+export type BillingPreviewQueryResult = Apollo.QueryResult<BillingPreviewQuery, BillingPreviewQueryVariables>;
 export const CreateHifdhDocument = gql`
     mutation CreateHifdh($input: CreateHifdhInput!, $file: Upload) {
   createHifdh(input: $input, file: $file) {

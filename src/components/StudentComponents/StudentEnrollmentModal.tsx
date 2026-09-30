@@ -1,11 +1,25 @@
 import { useState, useMemo, useCallback } from "react";
+import Modal from "react-modal";
 import { useTranslation } from "react-i18next";
+import {
+  Box,
+  Flex,
+  Grid,
+  Heading,
+  Text,
+  Button,
+  Input,
+  Label,
+  Checkbox,
+  Spinner,
+  Alert,
+} from "theme-ui";
 import {
   useStudentsTableQuery,
   useCreateBulkCourseEnrollmentsMutation,
+  useBillingPreviewLazyQuery,
   StudentWhereInput,
 } from "../../graphql/generated";
-import "./StudentEnrollmentModal.css";
 
 interface StudentEnrollmentModalProps {
   groupId: string;
@@ -15,6 +29,36 @@ interface StudentEnrollmentModalProps {
   enrolledStudentIds?: string[];
 }
 
+const formatDate = (value: string | Date): string => {
+  const d = new Date(value);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+const toRFC3339Nano = (dateString: string): string => {
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toISOString().replace("Z", "000000Z");
+};
+
+const cellSx = {
+  textAlign: "left",
+  p: 2,
+  borderBottom: "1px solid",
+  borderColor: "muted",
+  color: "text",
+} as const;
+
+const fieldSx = {
+  color: "text",
+  bg: "background",
+  borderColor: "muted",
+  borderRadius: "6px",
+  p: 2,
+  "&::placeholder": { color: "text", opacity: 0.5 },
+  "&:focus": { borderColor: "primary", outline: "none" },
+} as const;
+
 export function StudentEnrollmentModal({
   groupId,
   isOpen,
@@ -23,6 +67,10 @@ export function StudentEnrollmentModal({
   enrolledStudentIds = [],
 }: StudentEnrollmentModalProps) {
   const { t } = useTranslation();
+  const [step, setStep] = useState<"select" | "preview">("select");
+  const [partialPrices, setPartialPrices] = useState<Record<number, number>>(
+    {}
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(
     new Set()
@@ -33,10 +81,15 @@ export function StudentEnrollmentModal({
   const [endDate, setEndDate] = useState<string>("");
   const [discount, setDiscount] = useState<number>(0);
 
-  // Build where clause for search
+  const [
+    fetchPreview,
+    { data: previewData, loading: previewLoading, error: previewError },
+  ] = useBillingPreviewLazyQuery({ fetchPolicy: "network-only" });
+
+  const periods = previewData?.billingPreview?.periods ?? [];
+
   const buildWhereClause = useCallback((): StudentWhereInput | undefined => {
     if (!searchQuery.trim()) return undefined;
-
     const searchTerm = searchQuery.trim();
     return {
       or: [
@@ -47,7 +100,6 @@ export function StudentEnrollmentModal({
     };
   }, [searchQuery]);
 
-  // Fetch students using StudentsTable query
   const { data: studentsData, loading: studentsLoading } =
     useStudentsTableQuery({
       variables: {
@@ -59,14 +111,11 @@ export function StudentEnrollmentModal({
       skip: !isOpen,
     });
 
-  // Mutation for bulk enrollment
   const [createBulkEnrollments, { loading: enrollLoading }] =
     useCreateBulkCourseEnrollmentsMutation();
 
-  // Filter students to exclude already enrolled
   const filteredStudents = useMemo(() => {
     if (!studentsData?.studentsTable?.edges) return [];
-
     return studentsData.studentsTable.edges
       .map((edge) => edge?.node)
       .filter(
@@ -80,11 +129,8 @@ export function StudentEnrollmentModal({
   const handleSelectStudent = useCallback((studentId: string) => {
     setSelectedStudentIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(studentId)) {
-        newSet.delete(studentId);
-      } else {
-        newSet.add(studentId);
-      }
+      if (newSet.has(studentId)) newSet.delete(studentId);
+      else newSet.add(studentId);
       return newSet;
     });
   }, []);
@@ -97,6 +143,40 @@ export function StudentEnrollmentModal({
     }
   }, [filteredStudents, selectedStudentIds.size]);
 
+  const resetAndClose = () => {
+    setStep("select");
+    setPartialPrices({});
+    onClose();
+  };
+
+  const handlePreview = async () => {
+    if (selectedStudentIds.size === 0) {
+      alert(
+        t("enrollment.selectStudents") || "Please select at least one student"
+      );
+      return;
+    }
+    if (!startDate) {
+      alert(t("enrollment.selectStartDate") || "Please select a start date");
+      return;
+    }
+
+    const { data } = await fetchPreview({
+      variables: {
+        groupID: groupId,
+        startAt: toRFC3339Nano(startDate),
+        discount: discount,
+      },
+    });
+
+    const defaults: Record<number, number> = {};
+    data?.billingPreview?.periods.forEach((p, i) => {
+      if (p.isPartial) defaults[i] = p.amount;
+    });
+    setPartialPrices(defaults);
+    setStep("preview");
+  };
+
   const handleEnroll = async () => {
     if (selectedStudentIds.size === 0) {
       alert(
@@ -105,40 +185,32 @@ export function StudentEnrollmentModal({
       return;
     }
 
-    if (!startDate) {
-      alert(t("enrollment.selectStartDate") || "Please select a start date");
-      return;
-    }
-
     try {
-      // Convert dates to RFC3339Nano format
-      const toRFC3339Nano = (dateString: string): string => {
-        const date = new Date(`${dateString}T00:00:00`);
-        const isoString = date.toISOString();
-        return isoString.replace("Z", "000000Z");
-      };
-
+      const fragmentPrice = periods.find((p) => p.isPartial)
+        ? partialPrices[periods.findIndex((p) => p.isPartial)] ??
+          periods.find((p) => p.isPartial)!.amount
+        : null;
       const enrollmentInputs = Array.from(selectedStudentIds).map(
         (studentId) => ({
           groupID: groupId,
           studentID: studentId,
           startAt: toRFC3339Nano(startDate),
           endAt: endDate ? toRFC3339Nano(endDate) : undefined,
-          discount: discount / 100, // Convert percentage to decimal
-          creatorID: "1", // This should be the current user ID - adjust as needed
+          discount: discount / 100,
+          creatorID: "1",
         })
       );
-
       await createBulkEnrollments({
         variables: {
           inputs: enrollmentInputs,
+          fragmentPrice,
         },
       });
-
-      // Reset form
       setSelectedStudentIds(new Set());
       setSearchQuery("");
       setDiscount(0);
+      setStep("select");
+      setPartialPrices({});
       onSuccess?.();
       onClose();
       alert(t("enrollment.success") || "Students enrolled successfully!");
@@ -151,169 +223,438 @@ export function StudentEnrollmentModal({
     }
   };
 
-  if (!isOpen) return null;
+  const total = periods.reduce(
+    (sum, p, i) =>
+      sum + (p.isPartial ? partialPrices[i] ?? p.amount : p.amount),
+    0
+  );
 
   return (
-    <>
-      {/* Modal Overlay */}
-      <div className="modal-overlay" onClick={onClose}>
-        <div
-          className="modal-content enrollment-modal"
-          onClick={(e) => e.stopPropagation()}
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={resetAndClose}
+      ariaHideApp={false}
+      style={{
+        overlay: {
+          backgroundColor: "rgba(0, 0, 0, 0.65)",
+          backdropFilter: "blur(4px)",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        content: {
+          position: "relative",
+          inset: "auto",
+          width: "100%",
+          maxWidth: "640px",
+          margin: "0 16px",
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          borderRadius: "12px",
+          overflow: "visible",
+        },
+      }}
+    >
+      <Flex
+        sx={{
+          flexDirection: "column",
+          maxHeight: "90vh",
+          bg: "background",
+          color: "text",
+          borderRadius: "12px",
+          borderColor: "muted",
+          borderStyle: "solid",
+          borderWidth: "1px",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        {/* Header */}
+        <Flex
+          sx={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 4,
+            pb: 3,
+          }}
         >
-          {/* Modal Header */}
-          <div className="modal-header">
-            <h2 className="modal-title">Enroll Students</h2>
-            <button className="modal-close" onClick={onClose}>
-              ×
-            </button>
-          </div>
+          <Heading as="h2" sx={{ color: "text", fontSize: 4 }}>
+            {step === "select"
+              ? t("dashboard.enrollStudent")
+              : "Billing Preview"}
+          </Heading>
+          <Button
+            onClick={resetAndClose}
+            aria-label="Close"
+            sx={{
+              bg: "muted",
+              color: "text",
+              cursor: "pointer",
+              px: 2,
+              py: 0,
+              fontSize: 4,
+              lineHeight: 1.4,
+              borderRadius: "6px",
+              "&:hover": { opacity: 0.85 },
+            }}
+          >
+            ×
+          </Button>
+        </Flex>
 
-          {/* Modal Body */}
-          <div className="modal-body enrollment-body">
-            {/* Enrollment Settings */}
-            <div className="enrollment-settings">
-              <div className="setting-group">
-                <label>Start Date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="date-input"
-                />
-              </div>
+        {/* Body */}
+        <Box sx={{ px: 4, pb: 3, overflowY: "auto", flex: 1 }}>
+          {step === "select" && (
+            <>
+              <Grid columns={[1, 3]} gap={3} sx={{ mb: 3 }}>
+                <Box>
+                  <Label
+                    htmlFor="start-date"
+                    sx={{ fontWeight: "bold", color: "text" }}
+                  >
+                    Start Date
+                  </Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    sx={fieldSx}
+                  />
+                </Box>
+                <Box>
+                  <Label
+                    htmlFor="end-date"
+                    sx={{ fontWeight: "bold", color: "text" }}
+                  >
+                    End Date (Optional)
+                  </Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    sx={fieldSx}
+                  />
+                </Box>
+                <Box>
+                  <Label
+                    htmlFor="discount"
+                    sx={{ fontWeight: "bold", color: "text" }}
+                  >
+                    Discount (%)
+                  </Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={discount}
+                    onChange={(e) =>
+                      setDiscount(
+                        Math.min(
+                          100,
+                          Math.max(0, parseInt(e.target.value) || 0)
+                        )
+                      )
+                    }
+                    sx={fieldSx}
+                  />
+                </Box>
+              </Grid>
 
-              <div className="setting-group">
-                <label>End Date (Optional)</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="date-input"
-                />
-              </div>
-
-              <div className="setting-group">
-                <label>Discount (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={discount}
-                  onChange={(e) =>
-                    setDiscount(
-                      Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
-                    )
-                  }
-                  className="number-input"
-                />
-              </div>
-            </div>
-
-            {/* Search Input */}
-            <div className="search-container">
-              <input
+              <Input
                 type="text"
                 placeholder={
-                  t("enrollment.searchStudents") ||
+                  t("students.searchPlaceholder") ||
                   "Search students by name or email..."
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
+                sx={fieldSx}
               />
-            </div>
 
-            {/* Search Info */}
-            <div className="search-info">
-              {searchQuery.trim() ? (
-                <span>
-                  Showing search results for "<strong>{searchQuery}</strong>"
-                </span>
-              ) : (
-                <span>Showing first 10 students • Search to find more</span>
-              )}
-            </div>
+              <Text
+                sx={{
+                  fontSize: 1,
+                  color: "text",
+                  opacity: 0.7,
+                  my: 2,
+                  display: "block",
+                }}
+              >
+                {searchQuery.trim() ? (
+                  <>
+                    Showing search results for "<strong>{searchQuery}</strong>"
+                  </>
+                ) : (
+                  "Showing first 10 students • Search to find more"
+                )}
+              </Text>
 
-            {/* Select All Checkbox */}
-            <div className="select-all-container">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
+              <Label
+                sx={{
+                  alignItems: "center",
+                  mb: 2,
+                  cursor: "pointer",
+                  color: "text",
+                }}
+              >
+                <Checkbox
                   checked={
                     filteredStudents.length > 0 &&
                     selectedStudentIds.size === filteredStudents.length
                   }
                   onChange={handleSelectAll}
-                  className="checkbox-input"
                 />
-                <span>
-                  {filteredStudents.length > 0
-                    ? `Select All (${filteredStudents.length})`
-                    : "No students available"}
-                </span>
-              </label>
-            </div>
+                {filteredStudents.length > 0
+                  ? `Select All (${filteredStudents.length})`
+                  : "No students available"}
+              </Label>
 
-            {/* Students List */}
-            <div className="students-list">
-              {studentsLoading ? (
-                <div className="loading">Loading students...</div>
-              ) : filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <div key={student.id} className="student-item">
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudentIds.has(student.id)}
-                        onChange={() => handleSelectStudent(student.id)}
-                        className="checkbox-input"
-                      />
-                      <span className="student-info">
-                        <span className="student-name">
-                          {student.firstName} {student.lastName}
-                        </span>
-                        <span className="student-email">{student.email}</span>
-                      </span>
-                    </label>
-                  </div>
-                ))
-              ) : (
-                <div className="no-students">
-                  {enrolledStudentIds.length > 0
-                    ? "All available students are already enrolled"
-                    : "No students found"}
-                </div>
+              <Box
+                sx={{
+                  border: "1px solid",
+                  borderColor: "muted",
+                  borderRadius: "6px",
+                  maxHeight: 260,
+                  overflowY: "auto",
+                }}
+              >
+                {studentsLoading ? (
+                  <Flex sx={{ p: 3, justifyContent: "center" }}>
+                    <Spinner size={24} />
+                  </Flex>
+                ) : filteredStudents.length > 0 ? (
+                  filteredStudents.map((student) => (
+                    <Box
+                      key={student.id}
+                      sx={{
+                        px: 2,
+                        borderBottom: "1px solid",
+                        borderColor: "muted",
+                        "&:last-of-type": { borderBottom: "none" },
+                        "&:hover": { bg: "muted" },
+                      }}
+                    >
+                      <Label
+                        sx={{
+                          alignItems: "center",
+                          py: 2,
+                          cursor: "pointer",
+                          color: "text",
+                        }}
+                      >
+                        <Checkbox
+                          checked={selectedStudentIds.has(student.id)}
+                          onChange={() => handleSelectStudent(student.id)}
+                        />
+                        <Flex sx={{ flexDirection: "column" }}>
+                          <Text sx={{ fontWeight: "bold", color: "text" }}>
+                            {student.firstName} {student.lastName}
+                          </Text>
+                          <Text
+                            sx={{ fontSize: 1, color: "text", opacity: 0.7 }}
+                          >
+                            {student.email}
+                          </Text>
+                        </Flex>
+                      </Label>
+                    </Box>
+                  ))
+                ) : (
+                  <Text
+                    sx={{
+                      p: 3,
+                      textAlign: "center",
+                      color: "text",
+                      opacity: 0.7,
+                      display: "block",
+                    }}
+                  >
+                    {enrolledStudentIds.length > 0
+                      ? "All available students are already enrolled"
+                      : "No students found"}
+                  </Text>
+                )}
+              </Box>
+
+              <Text sx={{ mt: 2, color: "text", display: "block" }}>
+                <strong>{selectedStudentIds.size}</strong> student(s) selected
+              </Text>
+            </>
+          )}
+
+          {step === "preview" && (
+            <Box>
+              {previewLoading && (
+                <Flex sx={{ p: 3, justifyContent: "center" }}>
+                  <Spinner size={24} />
+                </Flex>
               )}
-            </div>
+              {previewError && (
+                <Alert variant="error">{previewError.message}</Alert>
+              )}
 
-            {/* Selected Count */}
-            <div className="selected-count">
-              <strong>{selectedStudentIds.size}</strong> student(s) selected
-            </div>
-          </div>
+              {periods.length > 0 && (
+                <>
+                  <Text sx={{ fontSize: 1, color: "text", opacity: 0.7 }}>
+                    Group ends:{" "}
+                    {formatDate(previewData!.billingPreview.groupEndDate)}
+                  </Text>
 
-          {/* Modal Footer */}
-          <div className="modal-footer">
-            <button
-              className="btn btn-secondary"
-              onClick={onClose}
-              disabled={enrollLoading}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleEnroll}
-              disabled={selectedStudentIds.size === 0 || enrollLoading}
-            >
-              {enrollLoading
-                ? "Enrolling..."
-                : `Enroll ${selectedStudentIds.size} Student(s)`}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+                  <Box
+                    as="table"
+                    sx={{ width: "100%", borderCollapse: "collapse", my: 3 }}
+                  >
+                    <thead>
+                      <tr>
+                        {["Period", "Type", "Amount"].map((h) => (
+                          <Box
+                            as="th"
+                            key={h}
+                            sx={{
+                              ...cellSx,
+                              bg: "muted",
+                              borderBottomWidth: "2px",
+                            }}
+                          >
+                            {h}
+                          </Box>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {periods.map((p, i) => (
+                        <tr key={i}>
+                          <Box as="td" sx={cellSx}>
+                            {formatDate(p.start)} – {formatDate(p.end)}
+                          </Box>
+                          <Box as="td" sx={cellSx}>
+                            {p.isPartial ? "Partial" : "Full"}
+                          </Box>
+                          <Box as="td" sx={cellSx}>
+                            {p.isPartial ? (
+                              <Input
+                                type="number"
+                                min={0}
+                                sx={{ ...fieldSx, width: 110 }}
+                                value={partialPrices[i] ?? p.amount}
+                                onChange={(e) =>
+                                  setPartialPrices((prev) => ({
+                                    ...prev,
+                                    [i]: Math.max(
+                                      0,
+                                      parseFloat(e.target.value) || 0
+                                    ),
+                                  }))
+                                }
+                              />
+                            ) : (
+                              p.amount
+                            )}
+                          </Box>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Box>
+
+                  <Text
+                    sx={{
+                      textAlign: "right",
+                      fontSize: 2,
+                      color: "text",
+                      display: "block",
+                    }}
+                  >
+                    Total per student: <strong>{total}</strong>
+                  </Text>
+                </>
+              )}
+            </Box>
+          )}
+        </Box>
+
+        {/* Footer */}
+        <Flex sx={{ justifyContent: "flex-end", gap: 2, p: 4, pt: 3 }}>
+          {step === "select" ? (
+            <>
+              <Button
+                variant="secondary"
+                onClick={resetAndClose}
+                sx={{
+                  bg: "muted",
+                  color: "text",
+                  cursor: "pointer",
+                  px: 3,
+                  py: 2,
+                  borderRadius: "6px",
+                  "&:hover": { opacity: 0.85 },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePreview}
+                disabled={selectedStudentIds.size === 0 || previewLoading}
+                sx={{
+                  bg: "primary",
+                  color: "background",
+                  px: 3,
+                  py: 2,
+                  borderRadius: "6px",
+                  cursor:
+                    selectedStudentIds.size === 0 ? "not-allowed" : "pointer",
+                  opacity: selectedStudentIds.size === 0 ? 0.5 : 1,
+                  "&:hover": {
+                    opacity: selectedStudentIds.size === 0 ? 0.5 : 0.9,
+                  },
+                }}
+              >
+                {previewLoading ? "Loading..." : "Preview"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setStep("select")}
+                disabled={enrollLoading}
+                sx={{
+                  bg: "muted",
+                  color: "text",
+                  cursor: "pointer",
+                  px: 3,
+                  py: 2,
+                  borderRadius: "6px",
+                  "&:hover": { opacity: 0.85 },
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleEnroll}
+                disabled={enrollLoading || periods.length === 0}
+                sx={{
+                  bg: "primary",
+                  color: "background",
+                  px: 3,
+                  py: 2,
+                  borderRadius: "6px",
+                  cursor: enrollLoading ? "not-allowed" : "pointer",
+                  opacity: enrollLoading || periods.length === 0 ? 0.5 : 1,
+                  "&:hover": { opacity: enrollLoading ? 0.5 : 0.9 },
+                }}
+              >
+                {enrollLoading
+                  ? "Enrolling..."
+                  : `Confirm & Enroll ${selectedStudentIds.size} Student(s)`}
+              </Button>
+            </>
+          )}
+        </Flex>
+      </Flex>
+    </Modal>
   );
 }

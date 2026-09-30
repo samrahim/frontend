@@ -30,7 +30,7 @@ export function SchoolInfosComponent() {
         setName(node.name || "");
         setAddress(node.address || "");
         setPreviewUrl(
-          node.logo ? `http://62.171.141.151:8081/${node.logo}` : ""
+          node.logo ? `http://62.171.141.151:8088${node.logo}` : ""
         );
       }
     },

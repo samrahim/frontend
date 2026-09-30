@@ -205,8 +205,11 @@ query GetAcademicYears {
   }
 }
 
-mutation CreateBulkCourseEnrollments($inputs: [CreateCourseEnrollmentInput!]!) {
-  createBulkCourseEnrollments(inputs: $inputs) {
+mutation CreateBulkCourseEnrollments(
+  $inputs: [CreateCourseEnrollmentInput!]!
+  $fragmentPrice: Float
+) {
+  createBulkCourseEnrollments(inputs: $inputs, fragmentPrice: $fragmentPrice) {
     id
     student {
       id
@@ -280,6 +283,18 @@ subscription OnGroupUpdated {
         firstName
         lastName
       }
+    }
+  }
+}
+
+query BillingPreview($groupID: ID!, $startAt: Time, $discount: Float) {
+  billingPreview(groupID: $groupID, startAt: $startAt, discount: $discount) {
+    groupEndDate
+    periods {
+      start
+      end
+      isPartial
+      amount
     }
   }
 }
