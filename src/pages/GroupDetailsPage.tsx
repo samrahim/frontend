@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  GroupBillingUnit,
   UpdateGroupDocument,
   useGetGroupDetailsCompleteQuery,
   useUpdateCourseEnrollmentMutation,
@@ -618,6 +619,7 @@ const GroupDetailsPage: React.FC = () => {
           onUpdated={() => {}}
         ></TeachingAssignmentsCard>
         <StudentEnrollmentModal
+          isMonthly={group?.billingUnit === GroupBillingUnit.Monthly}
           groupId={group?.id || ""}
           isOpen={enrollmentModalOpen}
           onClose={async () => {

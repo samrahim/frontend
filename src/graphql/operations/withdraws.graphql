@@ -122,3 +122,10 @@ subscription onWithDrawUpdated {
     }
   }
 }
+
+mutation updateWithDrawType($id: ID!, $input: UpdateWithdrawTypeInput!) {
+  updateWithdrawType(id: $id, input: $input) {
+    id
+    name
+  }
+}

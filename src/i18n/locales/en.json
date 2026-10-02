@@ -318,7 +318,9 @@
     "addClassroom": "Add new classroom",
     "addWithdraw": "Add new withdraw",
     "color": "Color",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "editSubject": "Edit subject",
+    "editWithDrawType": "Edit withdraw type"
   },
   "hifdh": {
     "title": "Memorization",

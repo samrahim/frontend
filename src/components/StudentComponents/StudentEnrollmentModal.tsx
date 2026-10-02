@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Modal from "react-modal";
 import { useTranslation } from "react-i18next";
 import {
@@ -22,6 +22,7 @@ import {
 } from "../../graphql/generated";
 
 interface StudentEnrollmentModalProps {
+  isMonthly: boolean;
   groupId: string;
   isOpen: boolean;
   onClose: () => void;
@@ -60,17 +61,20 @@ const fieldSx = {
 } as const;
 
 export function StudentEnrollmentModal({
+  isMonthly,
   groupId,
   isOpen,
   onClose,
   onSuccess,
   enrolledStudentIds = [],
 }: StudentEnrollmentModalProps) {
+  const showPreview = isMonthly;
   const { t } = useTranslation();
   const [step, setStep] = useState<"select" | "preview">("select");
   const [partialPrices, setPartialPrices] = useState<Record<number, number>>(
     {}
   );
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(
     new Set()
@@ -113,7 +117,15 @@ export function StudentEnrollmentModal({
 
   const [createBulkEnrollments, { loading: enrollLoading }] =
     useCreateBulkCourseEnrollmentsMutation();
-
+  useEffect(() => {
+    if (!isOpen) {
+      setStep("select");
+      setSelectedStudentIds(new Set());
+      setPartialPrices({});
+      setDiscount(0);
+      setSearchQuery("");
+    }
+  }, [isOpen]);
   const filteredStudents = useMemo(() => {
     if (!studentsData?.studentsTable?.edges) return [];
     return studentsData.studentsTable.edges
@@ -145,7 +157,10 @@ export function StudentEnrollmentModal({
 
   const resetAndClose = () => {
     setStep("select");
+    setSelectedStudentIds(new Set());
     setPartialPrices({});
+    setDiscount(0);
+    setSearchQuery("");
     onClose();
   };
 
@@ -593,27 +608,49 @@ export function StudentEnrollmentModal({
                   "&:hover": { opacity: 0.85 },
                 }}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
-              <Button
-                onClick={handlePreview}
-                disabled={selectedStudentIds.size === 0 || previewLoading}
-                sx={{
-                  bg: "primary",
-                  color: "background",
-                  px: 3,
-                  py: 2,
-                  borderRadius: "6px",
-                  cursor:
-                    selectedStudentIds.size === 0 ? "not-allowed" : "pointer",
-                  opacity: selectedStudentIds.size === 0 ? 0.5 : 1,
-                  "&:hover": {
-                    opacity: selectedStudentIds.size === 0 ? 0.5 : 0.9,
-                  },
-                }}
-              >
-                {previewLoading ? "Loading..." : "Preview"}
-              </Button>
+
+              {showPreview ? (
+                <Button
+                  onClick={handlePreview}
+                  disabled={selectedStudentIds.size === 0 || previewLoading}
+                  sx={{
+                    bg: "primary",
+                    color: "background",
+                    px: 3,
+                    py: 2,
+                    borderRadius: "6px",
+                    cursor:
+                      selectedStudentIds.size === 0 ? "not-allowed" : "pointer",
+                    opacity: selectedStudentIds.size === 0 ? 0.5 : 1,
+                  }}
+                >
+                  {previewLoading ? "Loading..." : "Preview"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleEnroll}
+                  disabled={selectedStudentIds.size === 0 || enrollLoading}
+                  sx={{
+                    bg: "primary",
+                    color: "background",
+                    px: 3,
+                    py: 2,
+                    borderRadius: "6px",
+                    cursor:
+                      selectedStudentIds.size === 0 || enrollLoading
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      selectedStudentIds.size === 0 || enrollLoading ? 0.5 : 1,
+                  }}
+                >
+                  {enrollLoading
+                    ? "Enrolling..."
+                    : `Enroll ${selectedStudentIds.size} Student(s)`}
+                </Button>
+              )}
             </>
           ) : (
             <>

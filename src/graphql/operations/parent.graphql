@@ -35,6 +35,12 @@ mutation createFamilyMember($input: CreateFamilyMemberInput!) {
   }
 }
 
+mutation updateFamilyMember($input: UpdateFamilyMemberInput!, $id: ID!) {
+  updateFamilyMember(input: $input, id: $id) {
+    id
+    type
+  }
+}
 subscription onfamilymemberCreated {
   familyMemberCreated {
     id

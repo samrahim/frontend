@@ -356,7 +356,9 @@
     "addClassroom": "إضافة فصل دراسي",
     "addWithdraw": " إضافة سحب",
     "color": "لون",
-    "quantity": "قدرت الإستيعاب"
+    "quantity": "قدرت الإستيعاب",
+    "editSubject": "تعديل المادة",
+    "editWithDrawType": "تعديل نوع السحب"
   },
   "hifdh": {
     "title": "الحفظ",

@@ -316,7 +316,9 @@
     "addClassroom": "Ajouter une nouvelle salle de classe",
     "addWithdraw": "Ajouter un nouveau retrait",
     "color": "Couleur",
-    "quantity": "Quantité"
+    "quantity": "Quantité",
+    "editSubject": "Modifier la matière",
+    "editWithDrawType": "Modifier le type de retrait"
   },
   "hifdh": {
     "title": "Mémorisation",

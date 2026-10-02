@@ -238,16 +238,6 @@ export function GroupsTable({ limit = 10, searchTerm = "" }: GroupsTableProps) {
     }
   };
 
-  const getCreatorName = (creator?: {
-    firstName?: string;
-    lastName?: string;
-  }) => {
-    if (!creator) return "Unknown";
-    return (
-      `${creator.firstName || ""} ${creator.lastName || ""}`.trim() || "Unknown"
-    );
-  };
-
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "";
 
@@ -256,37 +246,12 @@ export function GroupsTable({ limit = 10, searchTerm = "" }: GroupsTableProps) {
     return `${day}-${month}-${year}`;
   };
 
-  const handleView = (group?: any) => {
-    if (group?.id) {
-      navigate(`/groups/${group.id}`);
-    }
-  };
-
-  const handleEdit = (group?: any) => {
-    console.log("Edit group:", group);
-    // TODO: Implement edit modal
-  };
-  const bgColor = theme?.colors?.background as string;
-
-  const borderColor = theme?.colors?.border as string;
-
-  const handleDelete = (group?: any) => {
-    console.log("Delete group:", group);
-    // TODO: Implement delete confirmation
-  };
-
   if (error) {
     return (
       <Box sx={{ p: 3, color: "danger" }}>
         {t("common.error")}: {error.message}
       </Box>
     );
-  }
-
-  function handleAttendance(group: any): void {
-    if (group?.id) {
-      navigate(`/addattendancepage/${group.id}`);
-    }
   }
 
   return (

@@ -9,8 +9,9 @@ import { useState, useMemo } from "react";
 import {
   useGetFamilyMembersQuery,
   useCreateFamilyMemberMutation,
+  useUpdateFamilyMemberMutation,
 } from "../graphql";
-import { Box, Button, Heading, Input } from "theme-ui";
+import { Box, Button, Flex, Heading, Input } from "theme-ui";
 import { useTranslation } from "react-i18next";
 
 type FamilyMemberRow = {
@@ -55,11 +56,77 @@ export function ParentRelationComponent() {
     }));
   }, [edges]);
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  const [updateParentFamilyMember, { loading: isUpdating }] =
+    useUpdateFamilyMemberMutation();
+
+  const handleOpenEdit = (familyMember: FamilyMemberRow) => {
+    setEditingId(familyMember.id);
+    setEditName(familyMember.type);
+
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setEditingId(null);
+    setEditName("");
+  };
+
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const handleUpdateFamilyMember = async () => {
+    if (!editingId || !editName.trim()) return;
+
+    try {
+      await updateParentFamilyMember({
+        variables: {
+          id: editingId,
+          input: {
+            type: editName.trim(),
+          },
+        },
+      });
+      handleCloseEdit();
+    } catch (err) {
+      setUpdateError("Failed to update withdraw type. Please try again.");
+    }
+  };
+
   const columns = useMemo(
     () => [
       columnHelper.accessor("type", {
         header: () => t("familyMembers.type"),
         cell: (info) => info.getValue(),
+      }),
+      columnHelper.display({
+        id: "actions",
+        header: () => `${t("common.actions")}`,
+        cell: (info) => (
+          <Flex sx={{ gap: 2 }}>
+            <Button
+              onClick={() => handleOpenEdit(info.row.original)}
+              sx={{
+                px: 3,
+                py: 2,
+                bg: "primary",
+                color: "white",
+                fontSize: 0,
+                fontWeight: 500,
+                cursor: "pointer",
+                borderRadius: "md",
+                border: "none",
+                "&:hover": {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              {t("common.edit")}
+            </Button>
+          </Flex>
+        ),
       }),
     ],
     [t]
@@ -127,7 +194,7 @@ export function ParentRelationComponent() {
           width: "100%",
           borderCollapse: "collapse",
           "& th, & td": {
-            textAlign: "left",
+            textAlign: "start",
             padding: 3,
           },
           "& th": {
@@ -305,6 +372,108 @@ export function ParentRelationComponent() {
               }}
             >
               {t("common.create")}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={handleCloseEdit}
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.65)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          content: {
+            position: "relative",
+            inset: "auto",
+            width: "100%",
+            maxWidth: "450px",
+            margin: "0 16px",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            borderRadius: "12px",
+            overflow: "visible",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            bg: "background",
+            color: "text",
+            p: 4,
+            borderRadius: "12px",
+            borderColor: "muted",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+          }}
+        >
+          <Heading as="h2" sx={{ color: "text", mb: 3, fontSize: 4 }}>
+            {t("settings.editWithDrawType")}
+          </Heading>
+
+          {/* Name */}
+          <Input
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="withdrawe type name"
+            sx={{
+              mt: 3,
+              color: "text",
+              bg: "background",
+              borderColor: "muted",
+              borderRadius: "6px",
+              p: 2,
+              "&::placeholder": { color: "text", opacity: 0.5 },
+              "&:focus": { borderColor: "primary", outline: "none" },
+            }}
+          />
+
+          {/* Actions */}
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}
+          >
+            <Button
+              variant="secondary"
+              onClick={handleCloseEdit}
+              sx={{
+                bg: "muted",
+                color: "text",
+                cursor: "pointer",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                "&:hover": { opacity: 0.85 },
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+
+            <Button
+              onClick={handleUpdateFamilyMember}
+              disabled={!editName.trim() || isUpdating}
+              sx={{
+                bg: "primary",
+                color: "background",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                cursor:
+                  editName.trim() && !isUpdating ? "pointer" : "not-allowed",
+                opacity: editName.trim() && !isUpdating ? 1 : 0.5,
+                "&:hover": {
+                  opacity: editName.trim() && !isUpdating ? 0.9 : 0.5,
+                },
+              }}
+            >
+              {isUpdating ? t("common.saving") : t("common.save")}
             </Button>
           </Box>
         </Box>

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { Box, Button, Card, Flex, Input, Label, Text } from "theme-ui";
 import {
   TeacherGender,
@@ -11,8 +11,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Layout } from "../components/Layout";
 import { LuContact, LuUser } from "react-icons/lu";
 import { t } from "i18next";
-import PhoneInput from "react-phone-input-2";
-
+import PhoneInputSource from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css"; // تأكد أيضاً من استيراد الـ CSS إذا لم تكن قد استوردته مسبقاً
+const PhoneInput = (PhoneInputSource as any).default || PhoneInputSource;
 import {
   ColumnDef,
   createColumnHelper,
@@ -106,7 +107,7 @@ const TeacherEditPage: React.FC = () => {
       form.address !== (teacher.address || "") ||
       form.salary !== (teacher.paymentAmount || 0) ||
       form.dateOfBirth !==
-      (teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "");
+        (teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "");
 
     // Layer B: Deep Assignment Comparison
     // const baselineAssignments = (teacher.assignments || []).map((a) => ({
@@ -123,14 +124,14 @@ const TeacherEditPage: React.FC = () => {
   }, [form, teacher]);
 
   const [updateTeacher, { loading: updating }] = useUpdateTeacherMutation();
-  const [stopTeacher, { loading: stoppingAssignment }] = useStopTeacherMutation();
+  const [stopTeacher, { loading: stoppingAssignment }] =
+    useStopTeacherMutation();
   const handleSave = async () => {
     if (!id || !teacher) {
       return;
     }
 
     try {
-
       const response = await updateTeacher({
         variables: {
           id: teacher.id,
@@ -193,11 +194,9 @@ const TeacherEditPage: React.FC = () => {
           // refetch(); // Refresh the data to reflect the stopped assignment
         },
         onError: (error) => {
-
           console.error("Failed to stop assignment:", error);
-        }
+        },
       });
-
     } catch (error) {
       console.error("Failed to stop assignment:", error);
     }
@@ -243,7 +242,11 @@ const TeacherEditPage: React.FC = () => {
                 color: row.isStopped ? "text" : "white",
               }}
             >
-              {row.isStopped ? "Stopped" : stoppingAssignment ? "Stopping..." : "Stop"}
+              {row.isStopped
+                ? "Stopped"
+                : stoppingAssignment
+                ? "Stopping..."
+                : "Stop"}
             </Button>
           );
         },

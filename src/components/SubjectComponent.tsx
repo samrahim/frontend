@@ -6,8 +6,12 @@ import {
 } from "@tanstack/react-table";
 import Modal from "react-modal";
 import { useState, useMemo } from "react";
-import { useCreateSubjectMutation, useGetSubjectsQuery } from "../graphql";
-import { Box, Button, Heading, Input, Text } from "theme-ui";
+import {
+  useCreateSubjectMutation,
+  useGetSubjectsQuery,
+  useUpdateSubjectMutation,
+} from "../graphql";
+import { Box, Button, Flex, Heading, Input, Text } from "theme-ui";
 import { useAuth } from "../contexts/AuthContext";
 import { t } from "i18next";
 
@@ -25,6 +29,12 @@ export function SubjectComponent() {
   const { user } = useAuth();
   const [pageIndex, setPageIndex] = useState(0);
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<{
+    id: string;
+    subjectName: string;
+  } | null>(null);
+  const [editSubjectName, setEditSubjectName] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subjectName, setSubjectName] = useState("");
@@ -41,6 +51,27 @@ export function SubjectComponent() {
   const hasNextPage = edges.length === PAGE_SIZE;
   const [createsubject] = useCreateSubjectMutation();
 
+  const [updateSubjectMutation, { loading: isUpdating }] =
+    useUpdateSubjectMutation();
+  const handleUpdateSubject = async () => {
+    if (!editingSubject || !editSubjectName.trim()) return;
+
+    try {
+      await updateSubjectMutation({
+        variables: {
+          subjecId: editingSubject.id,
+          updator: user?.id.toString() ?? "",
+          input: {
+            name: editSubjectName.trim(),
+          },
+        },
+      });
+      handleCloseEdit();
+    } catch (error) {
+      console.error("Failed to update subject", error);
+      // optionally show a toast here
+    }
+  };
   const tableData: SubjectRow[] = useMemo(() => {
     return (
       data?.subjects?.edges?.map(({ node }: any) => ({
@@ -57,6 +88,17 @@ export function SubjectComponent() {
       })) ?? []
     );
   }, [data]);
+  const handleOpenEdit = (subject: { id: string; subjectName: string }) => {
+    setEditingSubject(subject);
+    setEditSubjectName(subject.subjectName);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setEditingSubject(null);
+    setEditSubjectName("");
+  };
   function formatDate(value?: string | Date | null) {
     if (!value) return "-";
 
@@ -82,8 +124,35 @@ export function SubjectComponent() {
         header: () => `${t("groups.createdBy")}`,
         cell: (info) => info.getValue(),
       }),
+      columnHelper.display({
+        id: "actions",
+        header: () => `${t("common.actions")}`,
+        cell: (info) => (
+          <Flex sx={{ gap: 2 }}>
+            <Button
+              onClick={() => handleOpenEdit(info.row.original)}
+              sx={{
+                px: 3,
+                py: 2,
+                bg: "primary",
+                color: "white",
+                fontSize: 0,
+                fontWeight: 500,
+                cursor: "pointer",
+                borderRadius: "md",
+                border: "none",
+                "&:hover": {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              {t("common.edit")}
+            </Button>
+          </Flex>
+        ),
+      }),
     ],
-    []
+    [t]
   );
 
   const table = useReactTable({
@@ -170,7 +239,7 @@ export function SubjectComponent() {
           width: "100%",
           borderCollapse: "collapse",
           "& th, & td": {
-            textAlign: "left",
+            textAlign: "start",
             padding: 3,
           },
           "& th": {
@@ -324,7 +393,7 @@ export function SubjectComponent() {
                 },
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
 
             <Button
@@ -343,7 +412,115 @@ export function SubjectComponent() {
                 },
               }}
             >
-              Create
+              {t("common.create")}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={handleCloseEdit}
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.65)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          content: {
+            position: "relative",
+            inset: "auto",
+            width: "100%",
+            maxWidth: "450px",
+            margin: "0 16px",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            borderRadius: "12px",
+            overflow: "visible",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            bg: "background",
+            color: "text",
+            p: 4,
+            borderRadius: "12px",
+            borderColor: "muted",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          <Heading as="h2" sx={{ color: "text", mb: 3, fontSize: 4 }}>
+            {t("settings.editSubject")}
+          </Heading>
+
+          <Input
+            value={editSubjectName}
+            onChange={(e) => setEditSubjectName(e.target.value)}
+            placeholder="Subject name"
+            sx={{
+              mt: 3,
+              width: "100%",
+              color: "text",
+              bg: "background",
+              borderColor: "muted",
+              borderRadius: "6px",
+              p: 2,
+              "&::placeholder": { color: "text", opacity: 0.5 },
+              "&:focus": {
+                borderColor: "primary",
+                outline: "none",
+                boxShadow: (theme) => `0 0 0 2px ${theme?.colors?.primary}`,
+              },
+            }}
+          />
+
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}
+          >
+            <Button
+              variant="secondary"
+              onClick={handleCloseEdit}
+              sx={{
+                bg: "muted",
+                color: "text",
+                cursor: "pointer",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                "&:hover": { opacity: 0.85 },
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+
+            <Button
+              onClick={handleUpdateSubject}
+              disabled={!editSubjectName.trim() || isUpdating}
+              sx={{
+                bg: "primary",
+                color: "background",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                cursor:
+                  editSubjectName.trim() && !isUpdating
+                    ? "pointer"
+                    : "not-allowed",
+                opacity: editSubjectName.trim() && !isUpdating ? 1 : 0.5,
+                "&:hover": {
+                  opacity: editSubjectName.trim() && !isUpdating ? 0.9 : 0.5,
+                },
+              }}
+            >
+              {isUpdating ? t("common.saving") : t("common.save")}
             </Button>
           </Box>
         </Box>

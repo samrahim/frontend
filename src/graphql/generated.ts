@@ -4778,6 +4778,7 @@ export type Mutation = {
   updateClassRooms: Array<ClassRoom>;
   updateCourseEnrollment: CourseEnrollment;
   updateExam: Exam;
+  updateFamilyMember: FamilyMember;
   updateGrade: Grade;
   updateGradeHistory: GradeHistory;
   updateGroup: Group;
@@ -5353,6 +5354,12 @@ export type MutationUpdateExamArgs = {
   files?: InputMaybe<Array<InputMaybe<Scalars['Upload']['input']>>>;
   id: Scalars['ID']['input'];
   input: UpdateExamInput;
+};
+
+
+export type MutationUpdateFamilyMemberArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateFamilyMemberInput;
 };
 
 
@@ -12235,6 +12242,14 @@ export type ClassroomUpdatedSubscriptionVariables = Exact<{ [key: string]: never
 
 export type ClassroomUpdatedSubscription = { __typename?: 'Subscription', classRoomUpdated: { __typename?: 'ClassRoom', id: string, name: string, color?: number | null, qty?: number | null } };
 
+export type UpdateClassroomMutationVariables = Exact<{
+  input: UpdateClassRoomInput;
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type UpdateClassroomMutation = { __typename?: 'Mutation', updateClassRoom: { __typename?: 'ClassRoom', id: string, name: string, color?: number | null, qty?: number | null } };
+
 export type DashboardDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -12473,6 +12488,14 @@ export type CreateFamilyMemberMutationVariables = Exact<{
 
 
 export type CreateFamilyMemberMutation = { __typename?: 'Mutation', addFamilyMember: { __typename?: 'FamilyMember', id: string, type: string } };
+
+export type UpdateFamilyMemberMutationVariables = Exact<{
+  input: UpdateFamilyMemberInput;
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type UpdateFamilyMemberMutation = { __typename?: 'Mutation', updateFamilyMember: { __typename?: 'FamilyMember', id: string, type: string } };
 
 export type OnfamilymemberCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -12803,6 +12826,15 @@ export type OnSubjectUpdatedSubscriptionVariables = Exact<{ [key: string]: never
 
 export type OnSubjectUpdatedSubscription = { __typename?: 'Subscription', subjectUpdated: { __typename?: 'Subject', name: string, createdAt?: any | null, creator: { __typename?: 'User', id: string, lastName: string } } };
 
+export type UpdateSubjectMutationVariables = Exact<{
+  input: UpdateSubjectInput;
+  subjecId: Scalars['ID']['input'];
+  updator: Scalars['ID']['input'];
+}>;
+
+
+export type UpdateSubjectMutation = { __typename?: 'Mutation', updateSubject: { __typename?: 'Subject', id: string, name: string, createdAt?: any | null, creator: { __typename?: 'User', firstName: string, lastName: string, id: string } } };
+
 export type TeachersTableQueryVariables = Exact<{
   offset: Scalars['Int']['input'];
   limit: Scalars['Int']['input'];
@@ -12994,6 +13026,14 @@ export type OnWithDrawUpdatedSubscriptionVariables = Exact<{ [key: string]: neve
 
 
 export type OnWithDrawUpdatedSubscription = { __typename?: 'Subscription', withdrawUpdated: { __typename?: 'Withdraw', id: string, amount: number, note: string, createdAt?: any | null, type?: { __typename?: 'WithdrawType', name: string, id: string } | null, creator: { __typename?: 'User', id: string, firstName: string, lastName: string } } };
+
+export type UpdateWithDrawTypeMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateWithdrawTypeInput;
+}>;
+
+
+export type UpdateWithDrawTypeMutation = { __typename?: 'Mutation', updateWithdrawType: { __typename?: 'WithdrawType', id: string, name: string } };
 
 export const StudentPersonalInfoFragmentDoc = gql`
     fragment StudentPersonalInfo on Student {
@@ -13496,6 +13536,43 @@ export function useClassroomUpdatedSubscription(baseOptions?: ApolloReactHooks.S
       }
 export type ClassroomUpdatedSubscriptionHookResult = ReturnType<typeof useClassroomUpdatedSubscription>;
 export type ClassroomUpdatedSubscriptionResult = Apollo.SubscriptionResult<ClassroomUpdatedSubscription>;
+export const UpdateClassroomDocument = gql`
+    mutation updateClassroom($input: UpdateClassRoomInput!, $id: ID!) {
+  updateClassRoom(id: $id, input: $input) {
+    id
+    name
+    color
+    qty
+  }
+}
+    `;
+export type UpdateClassroomMutationFn = Apollo.MutationFunction<UpdateClassroomMutation, UpdateClassroomMutationVariables>;
+
+/**
+ * __useUpdateClassroomMutation__
+ *
+ * To run a mutation, you first call `useUpdateClassroomMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateClassroomMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateClassroomMutation, { data, loading, error }] = useUpdateClassroomMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useUpdateClassroomMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateClassroomMutation, UpdateClassroomMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateClassroomMutation, UpdateClassroomMutationVariables>(UpdateClassroomDocument, options);
+      }
+export type UpdateClassroomMutationHookResult = ReturnType<typeof useUpdateClassroomMutation>;
+export type UpdateClassroomMutationResult = Apollo.MutationResult<UpdateClassroomMutation>;
+export type UpdateClassroomMutationOptions = Apollo.BaseMutationOptions<UpdateClassroomMutation, UpdateClassroomMutationVariables>;
 export const DashboardDataDocument = gql`
     query dashboardData {
   dashboardData {
@@ -14981,6 +15058,41 @@ export function useCreateFamilyMemberMutation(baseOptions?: ApolloReactHooks.Mut
 export type CreateFamilyMemberMutationHookResult = ReturnType<typeof useCreateFamilyMemberMutation>;
 export type CreateFamilyMemberMutationResult = Apollo.MutationResult<CreateFamilyMemberMutation>;
 export type CreateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>;
+export const UpdateFamilyMemberDocument = gql`
+    mutation updateFamilyMember($input: UpdateFamilyMemberInput!, $id: ID!) {
+  updateFamilyMember(input: $input, id: $id) {
+    id
+    type
+  }
+}
+    `;
+export type UpdateFamilyMemberMutationFn = Apollo.MutationFunction<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
+
+/**
+ * __useUpdateFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useUpdateFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFamilyMemberMutation, { data, loading, error }] = useUpdateFamilyMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useUpdateFamilyMemberMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>(UpdateFamilyMemberDocument, options);
+      }
+export type UpdateFamilyMemberMutationHookResult = ReturnType<typeof useUpdateFamilyMemberMutation>;
+export type UpdateFamilyMemberMutationResult = Apollo.MutationResult<UpdateFamilyMemberMutation>;
+export type UpdateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
 export const OnfamilymemberCreatedDocument = gql`
     subscription onfamilymemberCreated {
   familyMemberCreated {
@@ -16773,6 +16885,48 @@ export function useOnSubjectUpdatedSubscription(baseOptions?: ApolloReactHooks.S
       }
 export type OnSubjectUpdatedSubscriptionHookResult = ReturnType<typeof useOnSubjectUpdatedSubscription>;
 export type OnSubjectUpdatedSubscriptionResult = Apollo.SubscriptionResult<OnSubjectUpdatedSubscription>;
+export const UpdateSubjectDocument = gql`
+    mutation updateSubject($input: UpdateSubjectInput!, $subjecId: ID!, $updator: ID!) {
+  updateSubject(input: $input, id: $subjecId, updator: $updator) {
+    id
+    name
+    createdAt
+    creator {
+      firstName
+      lastName
+      id
+    }
+  }
+}
+    `;
+export type UpdateSubjectMutationFn = Apollo.MutationFunction<UpdateSubjectMutation, UpdateSubjectMutationVariables>;
+
+/**
+ * __useUpdateSubjectMutation__
+ *
+ * To run a mutation, you first call `useUpdateSubjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSubjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSubjectMutation, { data, loading, error }] = useUpdateSubjectMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      subjecId: // value for 'subjecId'
+ *      updator: // value for 'updator'
+ *   },
+ * });
+ */
+export function useUpdateSubjectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateSubjectMutation, UpdateSubjectMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateSubjectMutation, UpdateSubjectMutationVariables>(UpdateSubjectDocument, options);
+      }
+export type UpdateSubjectMutationHookResult = ReturnType<typeof useUpdateSubjectMutation>;
+export type UpdateSubjectMutationResult = Apollo.MutationResult<UpdateSubjectMutation>;
+export type UpdateSubjectMutationOptions = Apollo.BaseMutationOptions<UpdateSubjectMutation, UpdateSubjectMutationVariables>;
 export const TeachersTableDocument = gql`
     query TeachersTable($offset: Int!, $limit: Int!, $orderBy: TeacherOrder, $where: TeacherWhereInput, $withTotalCount: Boolean!) {
   teachersTable(
@@ -17669,3 +17823,38 @@ export function useOnWithDrawUpdatedSubscription(baseOptions?: ApolloReactHooks.
       }
 export type OnWithDrawUpdatedSubscriptionHookResult = ReturnType<typeof useOnWithDrawUpdatedSubscription>;
 export type OnWithDrawUpdatedSubscriptionResult = Apollo.SubscriptionResult<OnWithDrawUpdatedSubscription>;
+export const UpdateWithDrawTypeDocument = gql`
+    mutation updateWithDrawType($id: ID!, $input: UpdateWithdrawTypeInput!) {
+  updateWithdrawType(id: $id, input: $input) {
+    id
+    name
+  }
+}
+    `;
+export type UpdateWithDrawTypeMutationFn = Apollo.MutationFunction<UpdateWithDrawTypeMutation, UpdateWithDrawTypeMutationVariables>;
+
+/**
+ * __useUpdateWithDrawTypeMutation__
+ *
+ * To run a mutation, you first call `useUpdateWithDrawTypeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateWithDrawTypeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateWithDrawTypeMutation, { data, loading, error }] = useUpdateWithDrawTypeMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateWithDrawTypeMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateWithDrawTypeMutation, UpdateWithDrawTypeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useMutation<UpdateWithDrawTypeMutation, UpdateWithDrawTypeMutationVariables>(UpdateWithDrawTypeDocument, options);
+      }
+export type UpdateWithDrawTypeMutationHookResult = ReturnType<typeof useUpdateWithDrawTypeMutation>;
+export type UpdateWithDrawTypeMutationResult = Apollo.MutationResult<UpdateWithDrawTypeMutation>;
+export type UpdateWithDrawTypeMutationOptions = Apollo.BaseMutationOptions<UpdateWithDrawTypeMutation, UpdateWithDrawTypeMutationVariables>;

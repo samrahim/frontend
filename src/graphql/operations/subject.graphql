@@ -50,3 +50,20 @@ subscription onSubjectUpdated {
     }
   }
 }
+
+mutation updateSubject(
+  $input: UpdateSubjectInput!
+  $subjecId: ID!
+  $updator: ID!
+) {
+  updateSubject(input: $input, id: $subjecId, updator: $updator) {
+    id
+    name
+    createdAt
+    creator {
+      firstName
+      lastName
+      id
+    }
+  }
+}

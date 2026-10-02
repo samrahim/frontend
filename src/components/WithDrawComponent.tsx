@@ -8,12 +8,14 @@ import Modal from "react-modal";
 import { useState, useMemo } from "react";
 import {
   useCreateWithDrawTypeMutation,
+  useUpdateWithDrawTypeMutation,
   useWithDrawsTypesQuery,
 } from "../graphql";
-import { Box, Button, Heading, Input } from "theme-ui";
+import { Alert, Box, Button, Flex, Heading, Input } from "theme-ui";
 import { t } from "i18next";
 
 type WithDrawTypeRow = {
+  id: string;
   name: string;
 };
 
@@ -49,9 +51,49 @@ export function WithDrawsTypesComponent() {
 
   const tableData: WithDrawTypeRow[] = useMemo(() => {
     return edges.map(({ node }) => ({
+      id: node.id,
       name: node.name,
     }));
   }, [edges]);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+
+  const [updateWithDrawType, { loading: isUpdating }] =
+    useUpdateWithDrawTypeMutation();
+
+  const handleOpenEdit = (withdrawType: WithDrawTypeRow) => {
+    setEditingId(withdrawType.id);
+    setEditName(withdrawType.name);
+
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setEditingId(null);
+    setEditName("");
+  };
+
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const handleUpdateWithDrawType = async () => {
+    if (!editingId || !editName.trim()) return;
+
+    try {
+      await updateWithDrawType({
+        variables: {
+          id: editingId,
+          input: {
+            name: editName.trim(),
+          },
+        },
+      });
+      handleCloseEdit();
+    } catch (err) {
+      setUpdateError("Failed to update withdraw type. Please try again.");
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -59,8 +101,35 @@ export function WithDrawsTypesComponent() {
         header: () => t("students.name"),
         cell: (info) => info.getValue(),
       }),
+      columnHelper.display({
+        id: "actions",
+        header: () => `${t("common.actions")}`,
+        cell: (info) => (
+          <Flex sx={{ gap: 2 }}>
+            <Button
+              onClick={() => handleOpenEdit(info.row.original)}
+              sx={{
+                px: 3,
+                py: 2,
+                bg: "primary",
+                color: "white",
+                fontSize: 0,
+                fontWeight: 500,
+                cursor: "pointer",
+                borderRadius: "md",
+                border: "none",
+                "&:hover": {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              {t("common.edit")}
+            </Button>
+          </Flex>
+        ),
+      }),
     ],
-    []
+    [t]
   );
 
   const table = useReactTable({
@@ -103,7 +172,13 @@ export function WithDrawsTypesComponent() {
 
   if (loading && !data) return <Box>Loading...</Box>;
   if (error) return <Box>Error: {error.message}</Box>;
-
+  {
+    updateError && (
+      <Alert variant="error" sx={{ mb: 3 }}>
+        {updateError}
+      </Alert>
+    );
+  }
   return (
     <Box sx={{ overflowX: "auto", mb: 3 }}>
       {/* BUTTON */}
@@ -120,7 +195,7 @@ export function WithDrawsTypesComponent() {
           width: "100%",
           borderCollapse: "collapse",
           "& th, & td": {
-            textAlign: "left",
+            textAlign: "start",
             padding: 3,
           },
           "& th": {
@@ -276,7 +351,7 @@ export function WithDrawsTypesComponent() {
                 },
               }}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
 
             <Button
@@ -295,7 +370,109 @@ export function WithDrawsTypesComponent() {
                 },
               }}
             >
-              Create
+              {t("common.create")}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={handleCloseEdit}
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.65)",
+            backdropFilter: "blur(4px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          content: {
+            position: "relative",
+            inset: "auto",
+            width: "100%",
+            maxWidth: "450px",
+            margin: "0 16px",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            borderRadius: "12px",
+            overflow: "visible",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            bg: "background",
+            color: "text",
+            p: 4,
+            borderRadius: "12px",
+            borderColor: "muted",
+            borderStyle: "solid",
+            borderWidth: "1px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+          }}
+        >
+          <Heading as="h2" sx={{ color: "text", mb: 3, fontSize: 4 }}>
+            {t("settings.editWithDrawType")}
+          </Heading>
+
+          {/* Name */}
+          <Input
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="withdrawe type name"
+            sx={{
+              mt: 3,
+              color: "text",
+              bg: "background",
+              borderColor: "muted",
+              borderRadius: "6px",
+              p: 2,
+              "&::placeholder": { color: "text", opacity: 0.5 },
+              "&:focus": { borderColor: "primary", outline: "none" },
+            }}
+          />
+
+          {/* Actions */}
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}
+          >
+            <Button
+              variant="secondary"
+              onClick={handleCloseEdit}
+              sx={{
+                bg: "muted",
+                color: "text",
+                cursor: "pointer",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                "&:hover": { opacity: 0.85 },
+              }}
+            >
+              {t("common.cancel")}
+            </Button>
+
+            <Button
+              onClick={handleUpdateWithDrawType}
+              disabled={!editName.trim() || isUpdating}
+              sx={{
+                bg: "primary",
+                color: "background",
+                px: 3,
+                py: 2,
+                borderRadius: "6px",
+                cursor:
+                  editName.trim() && !isUpdating ? "pointer" : "not-allowed",
+                opacity: editName.trim() && !isUpdating ? 1 : 0.5,
+                "&:hover": {
+                  opacity: editName.trim() && !isUpdating ? 0.9 : 0.5,
+                },
+              }}
+            >
+              {isUpdating ? t("common.saving") : t("common.save")}
             </Button>
           </Box>
         </Box>

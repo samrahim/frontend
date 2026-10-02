@@ -37,3 +37,12 @@ subscription classroomUpdated {
     qty
   }
 }
+
+mutation updateClassroom($input: UpdateClassRoomInput!, $id: ID!) {
+  updateClassRoom(id: $id, input: $input) {
+    id
+    name
+    color
+    qty
+  }
+}

@@ -5394,6 +5394,7 @@ type Mutation {
   createExtraMeet(input: CreateExtraMeetInput!): ExtraMeet!
   endExtraMeet(id: ID!): ExtraMeet!
   addFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
+  updateFamilyMember(id: ID!, input: UpdateFamilyMemberInput!): FamilyMember!
   createGrade(input: CreateGradeInput!): Grade!
   updateGrade(id: ID!, input: UpdateGradeInput!): Grade!
   importGrades(file: Upload!): Boolean!
