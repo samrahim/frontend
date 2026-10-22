@@ -13,7 +13,7 @@ export function LoginPage() {
   // Auth fields
   const [email, setEmail] = useState("test@example.com");
   const [password, setPassword] = useState("12345678");
-
+  const API_IP = import.meta.env.VITE_API_URL || "localhost";
   // Extra setup fields for POST /setup
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -44,7 +44,7 @@ export function LoginPage() {
         formData.append("address", address);
         formData.append("role", role);
 
-        const response = await fetch("http://62.171.141.151:8088/setup", {
+        const response = await fetch(`${API_IP}/setup`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,12 +67,9 @@ export function LoginPage() {
 
         // جلب الـ Profile لتحديث AuthContext قبل التوجيه
         const idToken = localStorage.getItem("authToken");
-        const profileResponse = await fetch(
-          "http://62.171.141.151:8088/profile",
-          {
-            headers: { Authorization: "Bearer " + idToken },
-          }
-        );
+        const profileResponse = await fetch(`${API_IP}/profile`, {
+          headers: { Authorization: "Bearer " + idToken },
+        });
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           setUser(profileData);

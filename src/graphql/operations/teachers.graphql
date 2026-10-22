@@ -60,10 +60,17 @@ query GetTeacherDetails($id: ID!) {
       description
       paymentType
       paymentAmount
+      paymentFrequency
       picture
       gender
       active
       banned
+      payrolls {
+        id
+        createdAt
+        updatedAt
+        status
+      }
       creator {
         ...Creator
       }
@@ -116,5 +123,79 @@ subscription OnTeacherUpdated {
 mutation StopTeacher($id: ID!) {
   stopTeacher(id: $id) {
     id
+  }
+}
+
+query payrolls($where: TeacherPayrollWhereInput!, $offset: Int!, $limit: Int!) {
+  payrolls(
+    where: $where
+    offset: $offset
+    limit: $limit
+    withTotalCount: true
+  ) {
+    edges {
+      node {
+        id
+        createdAt
+        periodStart
+        periodEnd
+        grossAmount
+        note
+        status
+        deductionAmount
+        bonusAmount
+        note
+        teacher {
+          firstName
+          lastName
+          id
+        }
+        items {
+          unitPrice
+          quantity
+          sessions {
+            id
+            startAt
+            endAt
+            durationMin
+            schedule {
+              subject {
+                name
+              }
+            }
+          }
+          assignment {
+            assignedAt
+            assignedBy {
+              firstName
+              lastName
+              id
+            }
+            group {
+              name
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation updatePayroll($id: ID!, $input: UpdateTeacherPayrollInput!) {
+  updatePayroll(id: $id, input: $input) {
+    id
+  }
+}
+
+subscription payrollCreated {
+  payrollCreated {
+    ...TeacherPayrollFields
+  }
+}
+
+subscription payrollUpdated {
+  payrollUpdated {
+    ...TeacherPayrollFields
   }
 }

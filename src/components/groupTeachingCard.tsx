@@ -458,7 +458,11 @@ export default function TeachingAssignmentsCard({
                               >
                                 <LuCalendarDays size={15} />
 
-                                <Text>{recurrenceLabel(schedule.rrule)}</Text>
+                                {assignment.isReplacement ? (
+                                  <Text>replaced teacher for one session </Text>
+                                ) : (
+                                  <Text>{recurrenceLabel(schedule.rrule)}</Text>
+                                )}
                               </Flex>
 
                               <Badge>{formatTime(schedule.startTime)}</Badge>

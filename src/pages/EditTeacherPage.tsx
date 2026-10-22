@@ -1,11 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "@apollo/client";
-import { Box, Button, Card, Flex, Input, Label, Text } from "theme-ui";
+import { Box, Button, Card, Flex, Input, Label, Select, Text } from "theme-ui";
 import {
   TeacherGender,
   useGetTeacherDetailsQuery,
   useUpdateTeacherMutation,
   useStopTeacherMutation,
+  TeacherPaymentType,
+  TeacherPaymentFrequency,
 } from "../graphql";
 import { useEffect, useMemo, useState } from "react";
 import { Layout } from "../components/Layout";
@@ -35,19 +37,14 @@ interface TeacherForm {
   phone: string;
   gender: TeacherGender;
   dateOfBirth: string;
-  salary: number;
+
   address: string;
   assignments: FormAssignment[];
+  paymentType: TeacherPaymentType | "";
+  paymentFrequency: TeacherPaymentFrequency | "";
+  paymentAnchorDate: string; // YYYY-MM-DD or ""
+  paymentAmount: number; // string so it can be empty
 }
-
-const StopTeacherDocument = gql`
-  mutation StopTeacher($id: ID!) {
-    stopTeacher(id: $id) {
-      id
-      stoppedAt
-    }
-  }
-`;
 
 const TeacherEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +57,26 @@ const TeacherEditPage: React.FC = () => {
 
   const teacher =
     data?.node && data.node.__typename === "Teacher" ? data.node : null;
+  const hasPayrolls = (teacher?.payrolls?.length ?? 0) > 0;
+  const isOnceLocked =
+    hasPayrolls && teacher?.paymentType === TeacherPaymentType.Once;
+
+  const typeLocked = hasPayrolls;
+  const allPaymentLocked = isOnceLocked;
+
+  const switchableFreqs = [
+    TeacherPaymentFrequency.Weekly,
+    TeacherPaymentFrequency.Biweekly,
+    TeacherPaymentFrequency.Monthly,
+  ];
+  const frequencyOptions = hasPayrolls
+    ? switchableFreqs
+    : Object.values(TeacherPaymentFrequency);
+  const frequencyLocked =
+    allPaymentLocked ||
+    (hasPayrolls &&
+      !!teacher?.paymentFrequency &&
+      !switchableFreqs.includes(teacher.paymentFrequency));
 
   const [form, setForm] = useState<TeacherForm>({
     firstName: "",
@@ -68,46 +85,61 @@ const TeacherEditPage: React.FC = () => {
     phone: "",
     gender: TeacherGender.Male,
     dateOfBirth: "",
-    salary: 0,
+    paymentAmount: 0,
     address: "",
     assignments: [],
+    paymentAnchorDate: "",
+    paymentFrequency: TeacherPaymentFrequency.Biweekly,
+    paymentType: TeacherPaymentType.Hourly,
   });
 
-  useEffect(() => {
-    if (!teacher) return;
+  const toInputDate = (iso?: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${m}-${day}`;
+  };
 
-    setForm({
-      firstName: teacher.firstName || "",
-      lastName: teacher.lastName || "",
-      email: teacher.email || "",
-      phone: teacher.phone || "",
-      gender: teacher.gender || TeacherGender.Male,
-      dateOfBirth: teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "",
-      salary: teacher.paymentAmount || 0,
-      address: teacher.address || "",
-      assignments: (teacher.assignments || []).map((a) => ({
-        id: a.id,
-        subjectName: a.subject?.name || "",
-        groupName: a.group?.name || "",
-        isStopped: Boolean(a.stoppedAt),
-      })),
-    });
+  const mapTeacherToForm = (teacher: any): TeacherForm => ({
+    firstName: teacher.firstName || "",
+    lastName: teacher.lastName || "",
+    email: teacher.email || "",
+    phone: teacher.phone || "",
+    gender: teacher.gender ?? TeacherGender.Male,
+    dateOfBirth: teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "",
+    address: teacher.address || "",
+    paymentType: teacher.paymentType ?? "",
+    paymentFrequency: teacher.paymentFrequency ?? "",
+    paymentAnchorDate: toInputDate(teacher.paymentAnchorDate),
+    paymentAmount: teacher.paymentAmount ? teacher.paymentAmount : 0,
+    assignments: (teacher.assignments || []).map((a: any) => ({
+      id: a.id,
+      subjectName: a.subject?.name || "",
+      groupName: a.group?.name || "",
+      isStopped: Boolean(a.stoppedAt),
+    })),
+  });
+  useEffect(() => {
+    if (teacher) setForm(mapTeacherToForm(teacher));
   }, [teacher]);
 
   const isDirty = useMemo(() => {
     if (!teacher) return false;
-
+    const original = mapTeacherToForm(teacher);
     // Layer A: Profile Fields Check
     const teacherChanged =
-      form.firstName !== (teacher.firstName || "") ||
-      form.lastName !== (teacher.lastName || "") ||
-      form.email !== (teacher.email || "") ||
-      form.phone !== (teacher.phone || "") ||
-      form.gender !== (teacher.gender ?? TeacherGender.Male) ||
-      form.address !== (teacher.address || "") ||
-      form.salary !== (teacher.paymentAmount || 0) ||
-      form.dateOfBirth !==
-        (teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "");
+      form.firstName !== original.firstName ||
+      form.lastName !== original.lastName ||
+      form.email !== original.email ||
+      form.phone !== original.phone ||
+      form.gender !== original.gender ||
+      form.address !== original.address ||
+      form.dateOfBirth !== original.dateOfBirth ||
+      form.paymentType !== original.paymentType ||
+      form.paymentFrequency !== original.paymentFrequency ||
+      form.paymentAnchorDate !== original.paymentAnchorDate ||
+      form.paymentAmount !== original.paymentAmount;
 
     // Layer B: Deep Assignment Comparison
     // const baselineAssignments = (teacher.assignments || []).map((a) => ({
@@ -126,10 +158,42 @@ const TeacherEditPage: React.FC = () => {
   const [updateTeacher, { loading: updating }] = useUpdateTeacherMutation();
   const [stopTeacher, { loading: stoppingAssignment }] =
     useStopTeacherMutation();
+  const [paymentError, setPaymentError] = useState("");
   const handleSave = async () => {
-    if (!id || !teacher) {
+    if (!id || !teacher) return;
+    setPaymentError("");
+
+    const filled = [
+      form.paymentType,
+      form.paymentFrequency,
+      form.paymentAnchorDate,
+      form.paymentAmount,
+    ].filter((v) => v !== "").length;
+
+    // all-or-nothing: partial config would be silently ignored by the cron
+    if (filled !== 0 && filled !== 4) {
+      setPaymentError(
+        "Fill all payment fields (type, frequency, start date, amount) or leave them all empty."
+      );
       return;
     }
+    if (filled === 4 && Number(form.paymentAmount) <= 0) {
+      setPaymentError("Amount must be greater than 0.");
+      return;
+    }
+
+    const paymentInput =
+      filled === 4 && !allPaymentLocked
+        ? {
+            paymentType: form.paymentType as TeacherPaymentType,
+            paymentFrequency: form.paymentFrequency as TeacherPaymentFrequency,
+            // noon local time: stays on the same calendar day in any timezone
+            paymentAnchorDate: new Date(
+              `${form.paymentAnchorDate}T12:00:00`
+            ).toISOString(),
+            paymentAmount: Number(form.paymentAmount),
+          }
+        : {};
 
     try {
       const response = await updateTeacher({
@@ -144,39 +208,18 @@ const TeacherEditPage: React.FC = () => {
             email: form.email,
             phone: form.phone,
             gender: form.gender,
+            address: form.address,
+            ...paymentInput,
           },
         },
       });
-
-      console.log("Mutation successfully saved: ", response);
-
-      // Refresh the UI cache layout with backend data
-      if (response.data) {
-        refetch();
-      }
-    } catch (error) {
-      console.error("Failed to save changes:", error);
+      if (response.data) refetch();
+    } catch (e: any) {
+      // backend validation errors (locked fields) appear here
+      setPaymentError(e?.message || "Failed to save changes");
     }
   };
-  const handleDiscard = () => {
-    if (!teacher) return;
-    setForm({
-      firstName: teacher.firstName || "",
-      lastName: teacher.lastName || "",
-      email: teacher.email || "",
-      phone: teacher.phone || "",
-      gender: teacher.gender ?? TeacherGender.Male,
-      dateOfBirth: teacher.dateOfBirth ? teacher.dateOfBirth.split("T")[0] : "",
-      address: teacher.address || "",
-      salary: teacher.paymentAmount || 0,
-      assignments: (teacher.assignments || []).map((a) => ({
-        id: a.id,
-        subjectName: a.subject?.name || "",
-        groupName: a.group?.name || "",
-        isStopped: Boolean(a.stoppedAt),
-      })),
-    });
-  };
+  const handleDiscard = () => teacher && setForm(mapTeacherToForm(teacher));
 
   const handleToggleStopAssignment = async (assignmentId: string) => {
     console.log("Attempting to stop assignment with ID:", assignmentId);
@@ -377,7 +420,7 @@ const TeacherEditPage: React.FC = () => {
                 as="h2"
                 sx={{ fontSize: 4, fontWeight: "bold", color: "text" }}
               >
-                {t("Personal Information")}
+                {t("students.personalInformation")}
               </Text>
             </Flex>
 
@@ -392,7 +435,7 @@ const TeacherEditPage: React.FC = () => {
               {/* First Name */}
               <Box>
                 <Label htmlFor="firstName" sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.firstName")}
+                  {t("students.firstName")}
                 </Label>
                 <Box sx={{ position: "relative", width: "100%" }}>
                   <Box
@@ -426,7 +469,7 @@ const TeacherEditPage: React.FC = () => {
               {/* Last Name */}
               <Box>
                 <Label htmlFor="lastName" sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.lastName")}
+                  {t("students.lastName")}
                 </Label>
                 <Box sx={{ position: "relative", width: "100%" }}>
                   <Box
@@ -460,7 +503,7 @@ const TeacherEditPage: React.FC = () => {
               {/* Email Address */}
               <Box>
                 <Label htmlFor="email" sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.email")}
+                  {t("students.email")}
                 </Label>
                 <Box sx={{ position: "relative", width: "100%" }}>
                   <Box
@@ -495,7 +538,7 @@ const TeacherEditPage: React.FC = () => {
               {/* Phone Input */}
               <Box>
                 <Label htmlFor="phone" sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.phone")}
+                  {t("students.phone")}
                   <Text as="span" sx={{ color: "indigo", ml: 1 }}>
                     *
                   </Text>
@@ -531,7 +574,7 @@ const TeacherEditPage: React.FC = () => {
               {/* Date Of Birth */}
               <Box>
                 <Label htmlFor="dateOfBirth" sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.dateOfBirth")}
+                  {t("students.dateOfBirth")}
                   <Text as="span" sx={{ color: "indigo", ml: 1 }}>
                     *
                   </Text>
@@ -559,7 +602,7 @@ const TeacherEditPage: React.FC = () => {
               {/* Gender Selection */}
               <Box>
                 <Label sx={{ fontWeight: "bold", mb: 2 }}>
-                  {t("teachers.gender")}
+                  {t("students.gender")}
                 </Label>
                 <Flex sx={{ gap: 2, height: "42px" }}>
                   {Object.values(TeacherGender).map((g) => (
@@ -580,7 +623,7 @@ const TeacherEditPage: React.FC = () => {
                         transition: "all 0.2s",
                       }}
                     >
-                      {t(`teachers.${g.toLowerCase()}`)}
+                      {t(`students.${g.toLowerCase()}`)}
                     </Box>
                   ))}
                 </Flex>
@@ -589,6 +632,184 @@ const TeacherEditPage: React.FC = () => {
           </Box>
         </Box>
 
+        <Card
+          sx={{
+            p: 4,
+            mb: 4,
+            bg: "background",
+            border: "1px solid",
+            borderColor: "border",
+            borderRadius: "lg",
+          }}
+        >
+          <Text sx={{ fontSize: 3, fontWeight: "bold", mb: 2 }}>
+            {t("paymentSettings.title")}
+          </Text>
+
+          {!teacher.paymentType && (
+            <Text
+              sx={{ color: "orange", fontSize: 1, mb: 3, display: "block" }}
+            >
+              {t("paymentSettings.notConfigured")}
+            </Text>
+          )}
+          {isOnceLocked && (
+            <Text
+              sx={{ color: "orange", fontSize: 1, mb: 3, display: "block" }}
+            >
+              {t("paymentSettings.onceLocked")}
+            </Text>
+          )}
+          {hasPayrolls && !isOnceLocked && (
+            <Text sx={{ fontSize: 1, mb: 3, display: "block", opacity: 0.8 }}>
+              {t("paymentSettings.futureOnly")}
+            </Text>
+          )}
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: ["1fr", "1fr 1fr"],
+              columnGap: 4,
+              rowGap: 3,
+            }}
+          >
+            {/* Payment Type */}
+            <Box
+              onClick={() => {
+                if (typeLocked) {
+                  alert(t("paymentSettings.alerts.typeLocked"));
+                }
+              }}
+            >
+              <Label sx={{ fontWeight: "bold", mb: 2 }}>
+                {t("paymentSettings.typeLabel")}
+              </Label>
+              <Select
+                value={form.paymentType}
+                disabled={typeLocked}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    paymentType: e.target.value as TeacherPaymentType | "",
+                  })
+                }
+                sx={{ cursor: typeLocked ? "not-allowed" : "pointer" }}
+              >
+                <option value="">{t("paymentSettings.notSet")}</option>
+                {Object.values(TeacherPaymentType).map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+            </Box>
+
+            {/* Frequency */}
+            <Box
+              onClick={() => {
+                if (frequencyLocked) {
+                  alert(t("paymentSettings.alerts.frequencyLocked"));
+                }
+              }}
+            >
+              <Label sx={{ fontWeight: "bold", mb: 2 }}>
+                {t("paymentSettings.frequencyLabel")}
+              </Label>
+              <Select
+                value={form.paymentFrequency}
+                disabled={frequencyLocked}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    paymentFrequency: e.target.value as
+                      | TeacherPaymentFrequency
+                      | "",
+                  })
+                }
+                sx={{ cursor: frequencyLocked ? "not-allowed" : "pointer" }}
+              >
+                {!hasPayrolls && (
+                  <option value="">{t("paymentSettings.notSet")}</option>
+                )}
+                {frequencyOptions.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+            </Box>
+
+            {/* Start Date / Payment Date */}
+            <Box
+              onClick={() => {
+                if (allPaymentLocked) {
+                  alert(t("paymentSettings.alerts.dateLocked"));
+                }
+              }}
+            >
+              <Label sx={{ fontWeight: "bold", mb: 2 }}>
+                {form.paymentType === TeacherPaymentType.Once
+                  ? t("paymentSettings.paymentDateLabel")
+                  : t("paymentSettings.startDateLabel")}
+              </Label>
+              <Input
+                type="date"
+                value={form.paymentAnchorDate}
+                disabled={allPaymentLocked}
+                onChange={(e) =>
+                  setForm({ ...form, paymentAnchorDate: e.target.value })
+                }
+                onClick={(e) => {
+                  if (!allPaymentLocked) e.currentTarget.showPicker?.();
+                }}
+                sx={{ cursor: allPaymentLocked ? "not-allowed" : "pointer" }}
+              />
+            </Box>
+
+            {/* Amount */}
+            <Box
+              onClick={() => {
+                if (allPaymentLocked) {
+                  alert(t("paymentSettings.alerts.amountLocked"));
+                }
+              }}
+            >
+              <Label sx={{ fontWeight: "bold", mb: 2 }}>
+                {form.paymentType === TeacherPaymentType.Hourly
+                  ? t("paymentSettings.pricePerHour")
+                  : form.paymentType === TeacherPaymentType.Once
+                  ? t("paymentSettings.fixedAmount")
+                  : t("paymentSettings.pricePerSession")}
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.paymentAmount}
+                disabled={allPaymentLocked}
+                onChange={(e) =>
+                  setForm({ ...form, paymentAmount: Number(e.target.value) })
+                }
+                sx={{ cursor: allPaymentLocked ? "not-allowed" : "pointer" }}
+              />
+            </Box>
+          </Box>
+
+          {!hasPayrolls &&
+            form.paymentAnchorDate &&
+            form.paymentType !== TeacherPaymentType.Once && (
+              <Text sx={{ fontSize: 1, mt: 3, display: "block", opacity: 0.8 }}>
+                {t("paymentSettings.firstPayrollNote")}
+              </Text>
+            )}
+
+          {paymentError && (
+            <Text sx={{ color: "red", fontSize: 1, mt: 3, display: "block" }}>
+              {paymentError}
+            </Text>
+          )}
+        </Card>
         {/* Dynamic Assignments Table Card */}
         <Card
           sx={{

@@ -75,11 +75,19 @@ export function AppSidebar({}) {
         icon: "✅",
         translationKey: "navigation.attendanceApprovals",
       },
+
       {
         label: "Invoices",
         path: "/Invoicespage",
         icon: "🧾",
         translationKey: "navigation.invoices",
+      },
+
+      {
+        label: "Teacher Payroll",
+        path: "/payrollsScreen",
+        icon: "💵",
+        translationKey: "navigation.teacherPayroll",
       },
       {
         label: "Withdraws",

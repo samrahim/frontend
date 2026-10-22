@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import {
   StudentGender,
+  TeacherGender,
+  TeacherPaymentFrequency,
   TeacherPaymentType,
   useCreateTeacherMutation,
 } from "../../graphql";
@@ -14,9 +16,15 @@ import { Box, Button, Text, Flex, Input, Label, useThemeUI } from "theme-ui";
 import { useTranslation } from "react-i18next";
 
 import { useNavigate } from "react-router-dom";
-import { LuUser, LuMapPin, LuContact, LuHandCoins } from "react-icons/lu";
+import { LuUser, LuMapPin, LuContact } from "react-icons/lu";
 import { Layout } from "../Layout";
 import { PageLayout } from "../PageLayout";
+import { TeacherPaymentSection } from "./TeacherPayemntSection";
+import {
+  buildPaymentInput,
+  TeacherFormData,
+  validatePayment,
+} from "./teacher.types";
 
 export function CreateTeachertForm() {
   const [createTeacher, { loading }] = useCreateTeacherMutation();
@@ -29,6 +37,17 @@ export function CreateTeachertForm() {
     lastName: "",
     phone: "",
     paymentAmount: 0,
+
+    paymentType: TeacherPaymentType.Session,
+    paymentFrequency: TeacherPaymentFrequency.Weekly,
+
+    paymentWeekday: null,
+    paymentMonthDay: null,
+    paymentAnchorDate: null,
+
+    // One-time payment
+    paymentOnceDate: null,
+
     gender: "MALE",
     dateOfBirth: "",
     email: "",
@@ -36,8 +55,16 @@ export function CreateTeachertForm() {
     address: "",
   });
 
+  const handlePaymentChange = <K extends keyof TeacherFormData>(
+    field: K,
+    value: TeacherFormData[K]
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
   const { user } = useAuth();
-
   const handleSubmit = async () => {
     if (!teacherform.phone || teacherform.phone.length < 8) {
       alert(t("students.invalidPhone"));
@@ -48,28 +75,41 @@ export function CreateTeachertForm() {
       return;
     }
 
+    const payErr = validatePayment(teacherform);
+    if (payErr) {
+      alert(payErr);
+      return;
+    }
+
+    // 1. Build payload object
+    const inputPayload = {
+      firstName: teacherform.firstName,
+      lastName: teacherform.lastName,
+      email: teacherform.email || null,
+      phone: teacherform.phone,
+      address: teacherform.address,
+      dateOfBirth: teacherform.dateOfBirth
+        ? new Date(teacherform.dateOfBirth).toISOString()
+        : null,
+      gender: teacherform.gender as TeacherGender,
+      ...buildPaymentInput(teacherform),
+    };
+
+    // 2. Log payload to dev console
+    console.log("Sending GraphQL Input Payload:", inputPayload);
+
     try {
       await createTeacher({
         variables: {
-          input: {
-            firstName: teacherform.firstName,
-            lastName: teacherform.lastName,
-            phone: teacherform.phone,
-            dateOfBirth: new Date(teacherform.dateOfBirth).toISOString(),
-            paymentAmount: teacherform.paymentAmount,
-            paymentType: TeacherPaymentType.Salary,
-            email: teacherform.email,
-          },
+          input: inputPayload,
         },
-      }).then((e) => {
-        console.log(e);
-        navigate(-1);
       });
+      navigate(-1);
     } catch (err) {
+      console.log(err);
       alert(err);
     }
   };
-
   const bgColor = theme?.colors?.background || "#ffffff";
   const textColor = theme?.colors?.text || "#000000";
 
@@ -80,7 +120,7 @@ export function CreateTeachertForm() {
         description={t("teachers.add")}
         icon="➕"
       >
-        <Box sx={{ maxWidth: "800px", mx: "auto", pl: 3 }}>
+        <Box sx={{ maxWidth: "1000px", mx: "auto", pl: 3 }}>
           <Flex sx={{ alignItems: "center" }}>
             <Button
               onClick={() => navigate(-1)}
@@ -94,15 +134,14 @@ export function CreateTeachertForm() {
             </Text>
           </Flex>
         </Box>
-        <Box sx={{ maxWidth: "800px", mx: "auto", p: 3 }}>
+        <Box sx={{ maxWidth: "1000px", mx: "auto", p: 3 }}>
           {/* Section 1: Personal Information */}
-
           <Box
             sx={{
-              p: [3, 4], // Padding inside the card
-              borderRadius: "xl", // Smooth rounded corners
+              p: [3, 4],
+              borderRadius: "xl",
               boxShadow:
-                "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)", // Subtle depth shadow
+                "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
               border: "1px solid",
             }}
           >
@@ -150,26 +189,22 @@ export function CreateTeachertForm() {
                   <Label htmlFor="firstName" sx={{ fontWeight: "bold", mb: 2 }}>
                     {t("students.firstName")}
                   </Label>
-
-                  {/* 1. Relative Container Wrapper */}
                   <Box sx={{ position: "relative", width: "100%" }}>
-                    {/* 2. Absolute Icon Container */}
                     <Box
                       sx={{
                         position: "absolute",
                         top: "50%",
-                        left: 3, // Spaces it from the left edge
-                        transform: "translateY(-50%)", // Vertically centers the icon perfectly
+                        left: 3,
+                        transform: "translateY(-50%)",
                         display: "flex",
                         alignItems: "center",
-                        pointerEvents: "none", // Allows clicks to pass through to the input below
-                        color: "primary", // Icon color (or use "primary")
+                        pointerEvents: "none",
+                        color: "primary",
                       }}
                     >
-                      <LuUser size={22} /> {/* Your Icon */}
+                      <LuUser size={22} />
                     </Box>
 
-                    {/* 3. The Input Component */}
                     <Input
                       id="firstName"
                       name="firstName"
@@ -179,37 +214,36 @@ export function CreateTeachertForm() {
                         setForm({ ...teacherform, firstName: e.target.value })
                       }
                       sx={{
-                        pl: "40px !important", // CRITICAL: Leaves exact room for the icon on the left
+                        pl: "40px !important",
                         width: "100%",
                       }}
                       required
                     />
                   </Box>
                 </Box>
+
+                {/* Last Name */}
                 <Box>
                   <Label htmlFor="lastName" sx={{ fontWeight: "bold", mb: 2 }}>
                     {t("students.lastName")}
                   </Label>
-                  {/* Last Name */}
 
                   <Box sx={{ position: "relative", width: "100%" }}>
-                    {/* 2. Absolute Icon Container */}
                     <Box
                       sx={{
                         position: "absolute",
                         top: "50%",
-                        left: 3, // Spaces it from the left edge
-                        transform: "translateY(-50%)", // Vertically centers the icon perfectly
+                        left: 3,
+                        transform: "translateY(-50%)",
                         display: "flex",
                         alignItems: "center",
-                        pointerEvents: "none", // Allows clicks to pass through to the input below
-                        color: "primary", // Icon color (or use "primary")
+                        pointerEvents: "none",
+                        color: "primary",
                       }}
                     >
-                      <LuUser size={22} /> {/* Your Icon */}
+                      <LuUser size={22} />
                     </Box>
 
-                    {/* 3. The Input Component */}
                     <Input
                       id="lastName"
                       name="lastName"
@@ -226,30 +260,29 @@ export function CreateTeachertForm() {
                     />
                   </Box>
                 </Box>
+
+                {/* Email */}
                 <Box>
                   <Label htmlFor="email" sx={{ fontWeight: "bold", mb: 2 }}>
                     {t("students.email")}
                   </Label>
-                  {/* Last Name */}
 
                   <Box sx={{ position: "relative", width: "100%" }}>
-                    {/* 2. Absolute Icon Container */}
                     <Box
                       sx={{
                         position: "absolute",
                         top: "50%",
-                        left: 3, // Spaces it from the left edge
-                        transform: "translateY(-50%)", // Vertically centers the icon perfectly
+                        left: 3,
+                        transform: "translateY(-50%)",
                         display: "flex",
                         alignItems: "center",
-                        pointerEvents: "none", // Allows clicks to pass through to the input below
-                        color: "primary", // Icon color (or use "primary")
+                        pointerEvents: "none",
+                        color: "primary",
                       }}
                     >
-                      <LuContact size={22} /> {/* Your Icon */}
+                      <LuContact size={22} />
                     </Box>
 
-                    {/* 3. The Input Component */}
                     <Input
                       id="email"
                       name="email"
@@ -266,6 +299,7 @@ export function CreateTeachertForm() {
                     />
                   </Box>
                 </Box>
+
                 {/* Phone Number */}
                 <Box>
                   <Label htmlFor="phone" sx={{ fontWeight: "bold", mb: 2 }}>
@@ -277,20 +311,19 @@ export function CreateTeachertForm() {
                   <Box
                     sx={{
                       width: "100%",
-
                       "& .react-tel-input": {
                         width: "100%",
                       },
                       "& .form-control": {
                         width: "100% !important",
-                        height: "42px !important", // Matches standard input height
+                        height: "42px !important",
                         backgroundColor: `${bgColor} !important`,
                         color: `${textColor} !important`,
                         border: "1px solid !important",
-                        borderColor: "border !important", // Uses your theme's border color
-                        borderRadius: "6px !important", // Matches standard input border radius
+                        borderColor: "border !important",
+                        borderRadius: "6px !important",
                         fontSize: "16px !important",
-                        paddingLeft: "58px !important", // Gives breathing room for the flag dropdown
+                        paddingLeft: "58px !important",
                         transition: "all 0.2s",
                       },
                       "& .form-control:focus": {
@@ -334,6 +367,7 @@ export function CreateTeachertForm() {
                     />
                   </Box>
                 </Box>
+
                 {/* Date of Birth */}
                 <Box sx={{ paddingBottom: 4, flex: 1, width: "100%" }}>
                   <Label
@@ -360,7 +394,7 @@ export function CreateTeachertForm() {
                     onClick={(e) =>
                       (e.currentTarget as HTMLInputElement).showPicker?.()
                     }
-                    max={new Date().toISOString().split("T")[0]} // Can't be born in the future
+                    max={new Date().toISOString().split("T")[0]}
                     required
                     sx={{
                       height: "42px",
@@ -373,7 +407,7 @@ export function CreateTeachertForm() {
                   />
                 </Box>
 
-                {/* Gender Selection Boxes */}
+                {/* Gender Selection */}
                 <Box>
                   <Label sx={{ fontWeight: "bold", mb: 2 }}>
                     {t("students.gender")}
@@ -445,63 +479,13 @@ export function CreateTeachertForm() {
               </Box>
             </Box>
 
-            {/* Section 2: Contact & Family */}
-            <Box
-              sx={{
-                mb: 5,
-                pb: 3,
-                borderBottom: "1px solid",
-                borderColor: "border",
-              }}
-            >
-              <Flex sx={{ alignItems: "center", gap: 3, mb: 4 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    p: 2,
-                    bg: "muted",
-                    borderRadius: "md",
-                    color: "primary",
-                  }}
-                >
-                  <LuHandCoins size={28} />
-                </Box>
-                <Text
-                  as="h2"
-                  sx={{ fontSize: 4, fontWeight: "bold", color: "text" }}
-                >
-                  {t("teachers.payement")}
-                </Text>
-              </Flex>
+            {/* Section 2: Payment Configuration */}
+            <TeacherPaymentSection
+              formData={teacherform}
+              onChange={handlePaymentChange}
+            />
 
-              <Box sx={{ mb: 4 }}>
-                <Label
-                  htmlFor="payementAmount"
-                  sx={{ fontWeight: "bold", mb: 2 }}
-                >
-                  {t("teachers.salary")}
-                  <Text as="span" sx={{ color: "indigo", ml: 1 }}>
-                    *
-                  </Text>
-                </Label>
-                <Input
-                  id="salary"
-                  name="salary"
-                  value={teacherform.paymentAmount}
-                  onChange={(e) =>
-                    setForm({
-                      ...teacherform,
-                      paymentAmount: Number(e.target.value),
-                    })
-                  }
-                  placeholder="1000 DZ"
-                  required
-                />
-              </Box>
-            </Box>
-
+            {/* Section 3: Address */}
             <Box
               sx={{
                 mb: 5,
@@ -532,7 +516,6 @@ export function CreateTeachertForm() {
                 </Text>
               </Flex>
 
-              {/* Full Width Address */}
               <Box sx={{ mb: 4 }}>
                 <Label htmlFor="address" sx={{ fontWeight: "bold", mb: 2 }}>
                   {t("students.address")}
@@ -552,7 +535,8 @@ export function CreateTeachertForm() {
                 />
               </Box>
             </Box>
-            {/* Section 4: Action Rows */}
+
+            {/* Section 4: Actions */}
             <Flex
               sx={{
                 gap: 3,

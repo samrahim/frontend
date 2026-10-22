@@ -24,14 +24,12 @@ export function SchoolInfosComponent() {
   const { data, loading, error } = useSchoolQuery({
     onCompleted: (res) => {
       const node = res?.infos?.edges?.[0]?.node;
-
+      const API_IP = import.meta.env.VITE_API_URL || "localhost";
       if (node) {
         setInfoId(node?.id || "");
         setName(node.name || "");
         setAddress(node.address || "");
-        setPreviewUrl(
-          node.logo ? `http://62.171.141.151:8088${node.logo}` : ""
-        );
+        setPreviewUrl(node.logo ? `${API_IP}${node.logo}` : "");
       }
     },
   });

@@ -7,11 +7,37 @@ import {
   useReactTable,
   ColumnDef,
 } from "@tanstack/react-table";
-import { TeacherGender, useGetTeacherDetailsQuery } from "../graphql/generated";
+import {
+  TeacherGender,
+  TeacherPaymentType,
+  useGetTeacherDetailsQuery,
+} from "../graphql/generated";
 import { Layout } from "../components/Layout";
 import { Box, Flex, Text, Button, Badge, Avatar, Card } from "theme-ui";
 import { t } from "i18next";
 
+const formatCompensation = (
+  type?: TeacherPaymentType | string | null,
+  amount?: number | string | null
+) => {
+  if (!amount) return "-";
+
+  const formattedAmount = `${Number(amount).toFixed(2)} EURO`;
+
+  switch (type) {
+    case TeacherPaymentType.Hourly:
+    case "HOURLY":
+      return `${formattedAmount} / ${t("teachers.perHour") || "hr"}`;
+    case TeacherPaymentType.Session:
+    case "SESSION":
+      return `${formattedAmount} / ${t("teachers.perSession") || "session"}`;
+    case TeacherPaymentType.Once:
+    case "ONCE":
+      return `${formattedAmount} (${t("teachers.oneTime") || "one-time"})`;
+    default:
+      return formattedAmount;
+  }
+};
 const InfoField = ({ label, value }: { label: string; value?: any }) => (
   <Box
     sx={{
@@ -198,14 +224,14 @@ const TeacherDetailsPage: React.FC = () => {
               gap: 3,
             }}
           >
-            <InfoField label={t("teachers.email")} value={teacher.email} />
-            <InfoField label={t("teachers.phone")} value={teacher.phone} />
+            <InfoField label={t("students.email")} value={teacher.email} />
+            <InfoField label={t("students.phone")} value={teacher.phone} />
             <InfoField
-              label={t("teachers.gender")}
+              label={t("students.gender")}
               value={
                 teacher.gender === TeacherGender.Male
-                  ? t("teachers.male")
-                  : t("teachers.female")
+                  ? t("students.male")
+                  : t("students.female")
               }
             />
             <InfoField
@@ -217,7 +243,7 @@ const TeacherDetailsPage: React.FC = () => {
               value={formatDate(teacher.createdAt)}
             />
             <InfoField
-              label={t("teachers.createdBy")}
+              label={t("students.createdBy")}
               value={
                 teacher.creator
                   ? `${teacher.creator.firstName} ${teacher.creator.lastName}`
@@ -225,17 +251,19 @@ const TeacherDetailsPage: React.FC = () => {
               }
             />
             <InfoField
-              label={t("teachers.paymenttype")}
-              value={teacher.paymentType}
-            />
-            <InfoField
-              label={t("teachers.salary")}
-              value={
+              label={t("teachers.compensation") || "Compensation"}
+              value={formatCompensation(
+                teacher.paymentType,
                 teacher.paymentAmount
-                  ? Number(teacher.paymentAmount).toFixed(2)
-                  : "0.00"
-              }
+              )}
             />
+
+            {teacher.paymentType !== TeacherPaymentType.Once ? (
+              <InfoField
+                label={t("teachers.paymentFrequency")}
+                value={teacher.paymentFrequency}
+              />
+            ) : null}
           </Box>
 
           {teacher.description && (

@@ -55,6 +55,10 @@ fragment TeacherFields on Teacher {
   gender
   paymentAmount
   createdAt
+  paymentType
+  paymentFrequency
+  paymentWeekday
+  paymentAnchorDate
   creator {
     ...CreatorFields
   }
@@ -110,4 +114,48 @@ fragment RouteFrg on Route {
 fragment InfoFields on Info {
   id
   name
+}
+
+fragment TeacherPayrollFields on TeacherPayroll {
+  id
+  createdAt
+  periodStart
+  periodEnd
+  grossAmount
+  note
+  status
+  deductionAmount
+  bonusAmount
+  teacher {
+    firstName
+    lastName
+    id
+  }
+  items {
+    unitPrice
+    quantity
+    sessions {
+      id
+      startAt
+      endAt
+      durationMin
+      schedule {
+        subject {
+          name
+        }
+      }
+    }
+    assignment {
+      assignedAt
+      assignedBy {
+        firstName
+        lastName
+        id
+      }
+      group {
+        name
+        id
+      }
+    }
+  }
 }

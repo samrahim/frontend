@@ -23,7 +23,6 @@ export const FamilyMemberSubscriptionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const client = useApolloClient();
-  const { addNotification } = useNotifications();
 
   useOnfamilymemberCreatedSubscription({
     onData: ({ data }) => {

@@ -17,7 +17,6 @@ import {
 } from "@tanstack/react-table";
 import { t } from "i18next";
 import i18n from "../../i18n/i18n";
-import theme from "../../theme/theme";
 
 interface TeachersTableProps {
   limit?: number;
@@ -270,6 +269,7 @@ export function TeachersTable({
   const handleEdit = (teacher: Teacher) => {
     navigate(`/teachers/edit/${teacher.id}`);
   };
+  const isRTL = i18n.dir() === "rtl";
 
   if (error) {
     return (
@@ -280,8 +280,6 @@ export function TeachersTable({
       </Box>
     );
   }
-
-  const isRTL = i18n.dir() === "rtl";
 
   return (
     <Box

@@ -9,6 +9,8 @@ import {
   useChangeSessionClassroomMutation,
   useGenerateSessionMeetingLinkMutation,
   useGetClassRoomsQuery,
+  useTeachersTableQuery,
+  useReplaceTeacherforOneSessionMutation,
 } from "../graphql/generated";
 import "./SessionDetailsModal.css";
 
@@ -59,7 +61,7 @@ export function SessionDetailsModal({
   const navigate = useNavigate();
 
   const [showConfirmation, setShowConfirmation] = useState<
-    "cancel" | "reschedule" | "room" | null
+    "cancel" | "reschedule" | "room" | "teacher" | null
   >(null);
 
   const [rescheduleData, setRescheduleData] = useState({
@@ -81,6 +83,37 @@ export function SessionDetailsModal({
 
   const [selectedRoomId, setSelectedRoomId] = useState("");
 
+  const handleReplaceTeacher = async () => {
+    if (!selectedTeacherId) {
+      alert(t("session.selectTeacher"));
+      return;
+    }
+
+    if (!teacherReason.trim()) {
+      alert(t("session.enterTeacherReplacementReason"));
+      return;
+    }
+
+    try {
+      await replaceTeacher({
+        variables: {
+          sessionID: session.id,
+          teacherID: selectedTeacherId,
+          reason: teacherReason.trim(),
+        },
+      });
+
+      setShowConfirmation(null);
+      onClose();
+    } catch (error) {
+      console.error("Error replacing teacher:", error);
+      alert(t("common.errorOccurred"));
+    }
+  };
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [teacherSearch, setTeacherSearch] = useState("");
+  const [teacherReason, setTeacherReason] = useState("");
+
   // Mutations
   const [changeSessionStatus, { loading: cancelLoading }] =
     useChangeSessionStatusMutation();
@@ -91,6 +124,37 @@ export function SessionDetailsModal({
   const [generateSessionMeetingLink, { loading: meetingLinkLoading }] =
     useGenerateSessionMeetingLinkMutation();
 
+  const [replaceTeacher, { loading: replaceTeacherLoading }] =
+    useReplaceTeacherforOneSessionMutation();
+
+  const { data: teachersData, loading: teachersLoading } =
+    useTeachersTableQuery({
+      variables: {
+        offset: 0,
+        limit: 20,
+        withTotalCount: false,
+        where: teacherSearch
+          ? {
+              or: [
+                {
+                  firstNameContainsFold: teacherSearch,
+                },
+                {
+                  lastNameContainsFold: teacherSearch,
+                },
+              ],
+            }
+          : undefined,
+      },
+    });
+
+  const teachers = useMemo(() => {
+    return (
+      teachersData?.teachersTable?.edges
+        ?.map((edge) => edge?.node)
+        .filter(Boolean) || []
+    );
+  }, [teachersData]);
   // Fetch classrooms
   const { data: classroomsData } = useGetClassRoomsQuery({
     variables: {
@@ -326,6 +390,19 @@ export function SessionDetailsModal({
               >
                 {t("session.cancelSession")}
               </button>
+
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setSelectedTeacherId("");
+                  setTeacherSearch("");
+                  setTeacherReason("");
+                  setShowConfirmation("teacher");
+                }}
+                disabled={session.canceled}
+              >
+                {t("session.replaceTeacher")}
+              </button>
             </div>
           </div>
         </div>
@@ -461,6 +538,92 @@ export function SessionDetailsModal({
         </div>
       )}
 
+      {showConfirmation === "teacher" && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowConfirmation(null)}
+        >
+          <div
+            className="modal-content teacher-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>{t("session.replaceTeacher")}</h3>
+
+            <div className="form-group">
+              <label>{t("session.searchTeacher")}</label>
+
+              <input
+                type="text"
+                value={teacherSearch}
+                onChange={(e) => {
+                  setTeacherSearch(e.target.value);
+                  setSelectedTeacherId("");
+                }}
+                placeholder={t("session.searchTeacherPlaceholder")}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t("session.selectTeacher")}</label>
+
+              <select
+                value={selectedTeacherId}
+                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                disabled={teachersLoading}
+              >
+                <option value="">
+                  {teachersLoading
+                    ? t("common.loading")
+                    : t("session.selectTeacherPlaceholder")}
+                </option>
+
+                {teachers.map((teacher) => (
+                  <option key={teacher?.id} value={teacher?.id}>
+                    {`${teacher?.firstName || ""} ${
+                      teacher?.lastName || ""
+                    }`.trim()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>{t("session.replacementReason")}</label>
+
+              <textarea
+                value={teacherReason}
+                onChange={(e) => setTeacherReason(e.target.value)}
+                placeholder={t("session.replacementReasonPlaceholder")}
+                rows={3}
+              />
+            </div>
+
+            <div className="confirmation-actions">
+              <button
+                className="btn btn-primary"
+                onClick={handleReplaceTeacher}
+                disabled={
+                  replaceTeacherLoading ||
+                  !selectedTeacherId ||
+                  !teacherReason.trim()
+                }
+              >
+                {replaceTeacherLoading
+                  ? t("common.loading")
+                  : t("session.confirmReplaceTeacher")}
+              </button>
+
+              <button
+                className="btn btn-default"
+                onClick={() => setShowConfirmation(null)}
+                disabled={replaceTeacherLoading}
+              >
+                {t("common.cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Change Room Dialog */}
       {showConfirmation === "room" && (
         <div

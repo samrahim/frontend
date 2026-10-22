@@ -33,7 +33,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Modal from "react-modal";
 import StudentEditPage from "./pages/EditStudentPage";
 import AttendancePage from "./pages/AttendencePage";
-// import SubjectsPage from "./pages/SubjectsPage";
 
 import { CreateStudentPage } from "./pages/CreateStudentPage";
 import { InvoicesPage } from "./pages/InvoicesPage";
@@ -56,10 +55,14 @@ import { StudentSubscriptionProvider } from "./contexts/StudentSubscriptionProvi
 import { GroupSubscriptionProvider } from "./contexts/GroupSubscriptionProvider";
 import { TeacherSubscriptionProvider } from "./contexts/TeacherSubscriptionProvider";
 import { AttendanceSubscriptionProvider } from "./contexts/AttendanceSubscriptionProvider";
+import PayrollsScreen from "./pages/PayrollsPage";
+import { PayrollDetails } from "./pages/PayrollDetails";
+import { UpdateTeacherPayroll } from "./pages/EditPayrollPage";
+import { PayrollSubscriptionProvider } from "./contexts/PayrollSubsciptionProvider";
 
 Modal.setAppElement("#root");
+
 function App() {
-  // Set initial RTL/LTR based on i18n language
   const { i18n } = useTranslation();
   React.useEffect(() => {
     document.documentElement.lang = i18n.language;
@@ -72,280 +75,266 @@ function App() {
         <ApolloProvider client={client}>
           <AuthProvider>
             <NotificationProvider>
-              {/* <SubscriptionProvider> */}
-              <Router>
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route
-                    path="/home"
-                    element={
-                      <ProtectedRoute>
-                        <HomePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/students"
-                    element={
-                      <ProtectedRoute>
-                        <StudentSubscriptionProvider>
-                          <StudentsPage />
-                        </StudentSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/attendanceapprovals"
-                    element={
-                      <ProtectedRoute>
+              {/* 🚀 Global Subscription Providers (Active app-wide to prevent WebSocket reconnects) */}
+              <StudentSubscriptionProvider>
+                <TeacherSubscriptionProvider>
+                  <GroupSubscriptionProvider>
+                    <AcademicSubscriptionProvider>
+                      <FinanceSubscriptionProvider>
                         <AttendanceSubscriptionProvider>
-                          <AttendanceApprovalsPage />
+                          <PayrollSubscriptionProvider>
+                            <Router>
+                              <Routes>
+                                <Route path="/login" element={<LoginPage />} />
+                                <Route
+                                  path="/home"
+                                  element={
+                                    <ProtectedRoute>
+                                      <HomePage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/students"
+                                  element={
+                                    <ProtectedRoute>
+                                      <StudentsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/attendanceapprovals"
+                                  element={
+                                    <ProtectedRoute>
+                                      <AttendanceApprovalsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/students/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <StudentDetailsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/studentEnrollmentCard/:groupId/:studentId"
+                                  element={
+                                    <ProtectedRoute>
+                                      <StudentEnrollmentCard />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/students/edit/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <StudentEditPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/teachers"
+                                  element={
+                                    <ProtectedRoute>
+                                      <TeachersPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/teachers/edit/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <TeacherEditPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/createrecitation"
+                                  element={
+                                    <ProtectedRoute>
+                                      <CreateRecitationPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/payrollsScreen"
+                                  element={
+                                    <ProtectedRoute>
+                                      <PayrollsScreen />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/payroll/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <PayrollDetails />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/editpayroll/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <UpdateTeacherPayroll />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/createhifdh"
+                                  element={
+                                    <ProtectedRoute>
+                                      <CreateHifdhPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/teachers/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <TeacherDetailsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/groups"
+                                  element={
+                                    <ProtectedRoute>
+                                      <GroupsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/teachers/create"
+                                  element={
+                                    <ProtectedRoute>
+                                      <CreateTeachertForm />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/groups/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <GroupDetailsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/attendences"
+                                  element={
+                                    <ProtectedRoute>
+                                      <AttendancePage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/groups/create"
+                                  element={
+                                    <ProtectedRoute>
+                                      <LocalizationProvider
+                                        dateAdapter={AdapterDayjs}
+                                      >
+                                        <CreateGroupPage />
+                                      </LocalizationProvider>
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/Invoicespage"
+                                  element={
+                                    <ProtectedRoute>
+                                      <InvoicesPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/student/create"
+                                  element={
+                                    <ProtectedRoute>
+                                      <CreateStudentPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/calendar"
+                                  element={
+                                    <ProtectedRoute>
+                                      <CalendarPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/hifdh"
+                                  element={
+                                    <ProtectedRoute>
+                                      <HifdhTracking />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/withdraws"
+                                  element={
+                                    <ProtectedRoute>
+                                      <WithdrawsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/recitation"
+                                  element={
+                                    <ProtectedRoute>
+                                      <RecitationTracking />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/recitations/edit/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <EditRecitationPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/hifdhs/edit/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <EditHifdhPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/recitations/:id"
+                                  element={
+                                    <ProtectedRoute>
+                                      <RecitationDetails />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/settings"
+                                  element={
+                                    <ProtectedRoute>
+                                      <SettingsPage />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/"
+                                  element={<Navigate to="/home" replace />}
+                                />
+                              </Routes>
+                            </Router>
+                          </PayrollSubscriptionProvider>
                         </AttendanceSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/students/:id"
-                    element={
-                      <ProtectedRoute>
-                        <StudentSubscriptionProvider>
-                          <StudentDetailsPage />
-                        </StudentSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/studentEnrollmentCard/:groupId/:studentId"
-                    element={
-                      <ProtectedRoute>
-                        <StudentSubscriptionProvider>
-                          <StudentEnrollmentCard />
-                        </StudentSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/students/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <StudentSubscriptionProvider>
-                          <StudentEditPage />
-                        </StudentSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/teachers"
-                    element={
-                      <ProtectedRoute>
-                        <TeacherSubscriptionProvider>
-                          <TeachersPage />
-                        </TeacherSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/teachers/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <TeacherSubscriptionProvider>
-                          <TeacherEditPage />
-                        </TeacherSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/createrecitation"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <CreateRecitationPage />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/createhifdh"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <CreateHifdhPage />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/teachers/:id"
-                    element={
-                      <ProtectedRoute>
-                        <TeacherSubscriptionProvider>
-                          <TeacherDetailsPage />
-                        </TeacherSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/groups"
-                    element={
-                      <ProtectedRoute>
-                        <GroupSubscriptionProvider>
-                          <GroupsPage />
-                        </GroupSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/teachers/create"
-                    element={
-                      <ProtectedRoute>
-                        <TeacherSubscriptionProvider>
-                          <CreateTeachertForm />
-                        </TeacherSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/groups/:id"
-                    element={
-                      <ProtectedRoute>
-                        <GroupSubscriptionProvider>
-                          <GroupDetailsPage />
-                        </GroupSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/attendences"
-                    element={
-                      <ProtectedRoute>
-                        <AttendanceSubscriptionProvider>
-                          <AttendancePage />
-                        </AttendanceSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/groups/create"
-                    element={
-                      <ProtectedRoute>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <GroupSubscriptionProvider>
-                            <CreateGroupPage />
-                          </GroupSubscriptionProvider>
-                        </LocalizationProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/Invoicespage"
-                    element={
-                      <ProtectedRoute>
-                        <FinanceSubscriptionProvider>
-                          <InvoicesPage />
-                        </FinanceSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/student/create"
-                    element={
-                      <ProtectedRoute>
-                        <StudentSubscriptionProvider>
-                          <CreateStudentPage />
-                        </StudentSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/calendar"
-                    element={
-                      <ProtectedRoute>
-                        <CalendarPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/hifdh"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <HifdhTracking />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/withdraws"
-                    element={
-                      <ProtectedRoute>
-                        <FinanceSubscriptionProvider>
-                          <WithdrawsPage />
-                        </FinanceSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/recitation"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <RecitationTracking />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/recitations/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <EditRecitationPage />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/hifdhs/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <EditHifdhPage />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/recitations/:id"
-                    element={
-                      <ProtectedRoute>
-                        <AcademicSubscriptionProvider>
-                          <RecitationDetails />
-                        </AcademicSubscriptionProvider>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <SettingsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/" element={<Navigate to="/home" replace />} />
-                </Routes>
-              </Router>
-              {/* </SubscriptionProvider> */}
+                      </FinanceSubscriptionProvider>
+                    </AcademicSubscriptionProvider>
+                  </GroupSubscriptionProvider>
+                </TeacherSubscriptionProvider>
+              </StudentSubscriptionProvider>
             </NotificationProvider>
           </AuthProvider>
         </ApolloProvider>

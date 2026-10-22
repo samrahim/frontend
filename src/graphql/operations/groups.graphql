@@ -36,7 +36,6 @@ query GetGroupDetails($id: ID!) {
     ...GroupBasicInfo
   }
 }
-
 query GetGroupDetailsComplete($id: ID!) {
   groupDetails(id: $id) {
     id
@@ -85,10 +84,10 @@ query GetGroupDetailsComplete($id: ID!) {
     assignments {
       id
       assignedAt
+      isReplacement
       stoppedAt
       trackInvoices
-      pricePerUnit
-      billingUnit
+
       teacher {
         id
         firstName
@@ -150,8 +149,7 @@ mutation EditTeacherAssignment(
     assignedAt
     stoppedAt
     trackInvoices
-    pricePerUnit
-    billingUnit
+
     teacher {
       id
       firstName
@@ -255,8 +253,7 @@ subscription OnGroupUpdated {
       assignedAt
       stoppedAt
       trackInvoices
-      pricePerUnit
-      billingUnit
+
       teacher {
         id
         firstName

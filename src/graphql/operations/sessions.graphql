@@ -127,6 +127,20 @@ query GetPendingAttendanceSessionsCount {
   }
 }
 
+mutation replaceTeacherforOneSession(
+  $sessionID: ID!
+  $teacherID: ID!
+  $reason: String!
+) {
+  replaceSessionTeacher(
+    sessionId: $sessionID
+    newTeacherId: $teacherID
+    reason: $reason
+  ) {
+    ...SessionDetailsFragment
+  }
+}
+
 query GetPendingAttendanceSessions($first: Int, $after: Cursor) {
   sessions(
     first: $first
