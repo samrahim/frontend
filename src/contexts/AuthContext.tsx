@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // 1. طلب أول بدون forceRefresh لمعرفة الـ Profile
       let idToken = await userCredential.user.getIdToken();
-      console.log("Bearer ", idToken);
+      // console.log("Bearer ", idToken);
       const profileResponse = await fetch(`${API_IP}/profile`, {
         method: "GET",
         headers: {

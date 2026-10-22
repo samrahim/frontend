@@ -4,19 +4,13 @@ import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getMessaging, MessagePayload, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBAdSPE1XNxhE9hCbuEpEidKlYMQnBKjuA",
-
-  authDomain: "school-82ec4.firebaseapp.com",
-
-  projectId: "school-82ec4",
-
-  storageBucket: "school-82ec4.firebasestorage.app",
-
-  messagingSenderId: "858714475571",
-
-  appId: "1:858714475571:web:c12b76bc7bdba5b3f2e746",
-
-  measurementId: "G-JJDJQ8XE72",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 export const app =
