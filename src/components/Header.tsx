@@ -23,9 +23,10 @@ export function Header() {
   const { data } = useSchoolQuery();
   // Safe extraction for logo URL with fallbacke
   const schoolLogo = data?.infos?.edges?.[0]?.node?.logo;
-  const API_IP = import.meta.env.VITE_API_URL || "localhost";
 
-  const logoUrl = schoolLogo ? `${API_IP}${schoolLogo}` : "/uploads/logo.png";
+  const logoUrl = schoolLogo
+    ? `http://62.171.141.151.:8088${schoolLogo}`
+    : "/uploads/logo.png";
   const handleLogout = () => {
     logout();
     navigate("/login");

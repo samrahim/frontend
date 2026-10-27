@@ -48,7 +48,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const API_IP = import.meta.env.VITE_API_URL || "localhost";
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -69,9 +69,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const idToken = await firebaseUser.getIdToken(true);
           localStorage.setItem("authToken", idToken);
 
-          const profileResponse = await fetch(`${API_IP}/profile`, {
-            headers: { Authorization: "Bearer " + idToken },
-          });
+          const profileResponse = await fetch(
+            `http://62.171.141.151.:8088/profile`,
+            {
+              headers: { Authorization: "Bearer " + idToken },
+            }
+          );
 
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
@@ -106,13 +109,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // 1. طلب أول بدون forceRefresh لمعرفة الـ Profile
       let idToken = await userCredential.user.getIdToken();
       // console.log("Bearer ", idToken);
-      const profileResponse = await fetch(`${API_IP}/profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + idToken,
-        },
-      });
+      const profileResponse = await fetch(
+        `http://62.171.141.151.:8088/profile`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + idToken,
+          },
+        }
+      );
       console.log(profileResponse);
       if (!profileResponse.ok) {
         throw new Error("Failed to fetch profile");

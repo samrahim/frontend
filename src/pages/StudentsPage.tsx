@@ -26,7 +26,7 @@ export function StudentsPage() {
   }, [searchTerm]);
   const [selectedGroup, setSelectedGroup] = useState<string | undefined>();
   const [selectedGender, setSelectedGender] = useState<string | undefined>();
-  const API_IP = import.meta.env.VITE_API_URL || "localhost";
+
   // 🔹 Fetch groups
   const {
     data: groupsData,
@@ -47,7 +47,7 @@ export function StudentsPage() {
       const { data } = await exportExcel();
 
       if (data?.exportExcel) {
-        const fileUrl = `${API_IP}${data.exportExcel}`;
+        const fileUrl = `http://62.171.141.151.:8088${data.exportExcel}`;
 
         // safer (handles spaces)
         const encodedUrl = encodeURI(fileUrl);
